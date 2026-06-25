@@ -50,10 +50,149 @@ function initMailer() {
     }
 }
 
+// ============================================================
+// ПОЛНЫЙ СПИСОК ТОВАРОВ (все позиции из прайс-листа)
+// ============================================================
+const allProducts = [
+    // === ЭСПРЕССО МОНОСОРТА (1кг) ===
+    { id:'p1', name:'Бразилия Серрадо (эспрессо, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00003319' },
+    { id:'p2', name:'Гватемала Фуэго (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p3', name:'Кения Найроби (эспрессо, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
+    { id:'p4', name:'Колумбия Богота (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p5', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00008552' },
+    { id:'p6', name:'Руанда Кигали (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p7', name:'Эфиопия Гуджи (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'00-00008886' },
+    { id:'p8', name:'Эфиопия Иргачефф (эспрессо, зерно 1кг)', category:'Кофе', price:2300, unit:'1 кг', weight:1, code:'00-00003323' },
+    { id:'p9', name:'Эфиопия Оромия (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
+    // === ЭСПРЕССО МОНОСОРТА (250г) ===
+    { id:'p10', name:'Бразилия Серрадо (эспрессо, зерно 250г)', category:'Кофе', price:560, unit:'250 г', weight:0.25, code:'00-00003386' },
+    { id:'p11', name:'Колумбия Богота (эспрессо, зерно 250г)', category:'Кофе', price:655, unit:'250 г', weight:0.25, code:'' },
+    { id:'p12', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 250г)', category:'Кофе', price:640, unit:'250 г', weight:0.25, code:'' },
+    { id:'p13', name:'Эфиопия Гуджи (эспрессо, зерно 250г)', category:'Кофе', price:680, unit:'250 г', weight:0.25, code:'' },
+    { id:'p14', name:'Эфиопия Иргачефф (эспрессо, зерно 250г)', category:'Кофе', price:600, unit:'250 г', weight:0.25, code:'00-00003390' },
+    // === СМЕСИ ДЛЯ ЭСПРЕССО (1кг) ===
+    { id:'p15', name:'Фанки (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2850, unit:'1 кг', weight:1, code:'' },
+    { id:'p16', name:'Флорал (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2700, unit:'1 кг', weight:1, code:'' },
+    { id:'p17', name:'Фрутти (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
+    // === СМЕСИ ДЛЯ МОЛОЧНЫХ НАПИТКОВ (1кг) ===
+    { id:'p18', name:'Брауни (молочная смесь, зерно 1кг)', category:'Кофе', price:2550, unit:'1 кг', weight:1, code:'00-00010018' },
+    { id:'p19', name:'Бэрри (молочная смесь, зерно 1кг)', category:'Кофе', price:2400, unit:'1 кг', weight:1, code:'00-00006879' },
+    { id:'p20', name:'Кэнди (молочная смесь, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00006773' },
+    { id:'p21', name:'Натти (молочная смесь, зерно 1кг)', category:'Кофе', price:1430, unit:'1 кг', weight:1, code:'00-00006899' },
+    { id:'p22', name:'Хани (молочная смесь, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'00-00014516' },
+    // === СМЕСИ ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p23', name:'Батч-Брю (фильтр, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'' },
+    { id:'p24', name:'Клин Скин (фильтр, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00007103' },
+    // === МОНОСОРТА ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p25', name:'Бразилия Суль-де-Минас (фильтр, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'' },
+    { id:'p26', name:'Гватемала Сантьяго (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p27', name:'Индонезия Суматра Гайо (фильтр, зерно 1кг)', category:'Кофе', price:2800, unit:'1 кг', weight:1, code:'' },
+    { id:'p28', name:'Кения Маунт (фильтр, зерно 1кг)', category:'Кофе', price:1755, unit:'1 кг', weight:1, code:'' },
+    { id:'p29', name:'Колумбия Уила (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p30', name:'Руанда Киву (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'00-00004889' },
+    { id:'p31', name:'Эфиопия Сидамо (фильтр, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
+    // === МИКРОЛОТЫ ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p32', name:'Индонезия Ява Фринса Анаэробный (фильтр, 1кг)', category:'Кофе', price:3550, unit:'1 кг', weight:1, code:'' },
+    { id:'p33', name:'Индонезия Ява Фринса Манис (фильтр, 1кг)', category:'Кофе', price:2275, unit:'1 кг', weight:1, code:'' },
+    { id:'p34', name:'Кения Гитурара (фильтр, 1кг)', category:'Кофе', price:3000, unit:'1 кг', weight:1, code:'' },
+    { id:'p35', name:'Кения Ндианин (фильтр, 1кг)', category:'Кофе', price:3200, unit:'1 кг', weight:1, code:'' },
+    { id:'p36', name:'Кения Риакиберу (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p37', name:'Коста-Рика Дон Сабино Монтанья (фильтр, 1кг)', category:'Кофе', price:4050, unit:'1 кг', weight:1, code:'' },
+    { id:'p38', name:'Коста-Рика Лас Маргаритас (фильтр, 1кг)', category:'Кофе', price:3850, unit:'1 кг', weight:1, code:'' },
+    { id:'p39', name:'Перу Альто Пириас (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p40', name:'Руанда Гишеке (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p41', name:'Руанда Чеша (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p42', name:'Эфиопия Мукера 200 часов (фильтр, 1кг)', category:'Кофе', price:3350, unit:'1 кг', weight:1, code:'' },
+    // === ЧАЙ ===
+    { id:'t1', name:'Ганпаудер (зеленый, 250г)', category:'Чай', price:295, unit:'250 г', weight:0.25, code:'00-00010038' },
+    { id:'t2', name:'Ганпаудер (зеленый, 100г)', category:'Чай', price:155, unit:'100 г', weight:0.1, code:'00-00010039' },
+    { id:'t3', name:'Улун молочный (улун, 250г)', category:'Чай', price:400, unit:'250 г', weight:0.25, code:'00-00006093' },
+    { id:'t4', name:'Улун молочный (улун, 100г)', category:'Чай', price:180, unit:'100 г', weight:0.1, code:'00-00007384' },
+    { id:'t5', name:'Английский завтрак (черный, 100г)', category:'Чай', price:190, unit:'100 г', weight:0.1, code:'00-00007387' },
+    { id:'t6', name:'Вишнёвый (черный аромат, 250г)', category:'Чай', price:560, unit:'250 г', weight:0.25, code:'00-00010451' },
+    { id:'t7', name:'Вишнёвый (черный аромат, 100г)', category:'Чай', price:255, unit:'100 г', weight:0.1, code:'00-00010450' },
+    { id:'t8', name:'Лесные Ягоды (черный аромат, 100г)', category:'Чай', price:220, unit:'100 г', weight:0.1, code:'00-00007398' },
+    { id:'t9', name:'Масала (черный аромат, 100г)', category:'Чай', price:210, unit:'100 г', weight:0.1, code:'00-00007392' },
+    { id:'t10', name:'Ананас-Кокос (зеленый аромат, 100г)', category:'Чай', price:185, unit:'100 г', weight:0.1, code:'00-00014619' },
+    { id:'t11', name:'Тегуаньинь (улун, 100г)', category:'Чай', price:215, unit:'100 г', weight:0.1, code:'00-00010043' },
+    { id:'t12', name:'Гречишный (травяной, 100г)', category:'Чай', price:170, unit:'100 г', weight:0.1, code:'00-00007376' },
+    { id:'t13', name:'Масала (черный, 250г)', category:'Чай', price:465, unit:'250 г', weight:0.25, code:'' },
+    { id:'t14', name:'Эрл Грей (черный, 100г)', category:'Чай', price:150, unit:'100 г', weight:0.1, code:'' },
+    { id:'t15', name:'Сенча (зеленый, 100г)', category:'Чай', price:130, unit:'100 г', weight:0.1, code:'' },
+    { id:'t16', name:'Матча (зеленый, 100г)', category:'Чай', price:765, unit:'100 г', weight:0.1, code:'' },
+    { id:'t17', name:'Пуэр Дворцовый (пуэр, 250г)', category:'Чай', price:630, unit:'250 г', weight:0.25, code:'' },
+    { id:'t18', name:'Пуэр Юннань 3 года (пуэр, 250г)', category:'Чай', price:515, unit:'250 г', weight:0.25, code:'' },
+    // === КАПСУЛЫ ===
+    { id:'c1', name:'Капсулы Брауни (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c2', name:'Капсулы Бэрри (10 шт)', category:'Капсулы', price:260, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c3', name:'Капсулы Колумбия Богота (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c4', name:'Капсулы Кэнди (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'00-00009996' },
+    { id:'c5', name:'Капсулы Натти (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c6', name:'Капсулы Руанда Кигали (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c7', name:'Капсулы Фанки (10 шт)', category:'Капсулы', price:290, unit:'10 шт', weight:0.05, code:'00-00014881' },
+    { id:'c8', name:'Капсулы Флорал (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'00-00012912' },
+    { id:'c9', name:'Капсулы Фрутти (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'00-00012913' },
+    { id:'c10', name:'Капсулы Эфиопия Гуджи (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'00-00009904' },
+    { id:'c11', name:'Капсулы Эфиопия Гуджи (40 шт)', category:'Капсулы', price:1070, unit:'40 шт', weight:0.2, code:'00-00013233' },
+    { id:'c12', name:'Капсулы Эфиопия Оромия (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    // === ДРИП-ПАКЕТЫ ===
+    { id:'d1', name:'Дрип-пакеты Бэрри (10 шт)', category:'Дрип-пакеты', price:370, unit:'10 шт', weight:0.1, code:'00-00007177' },
+    { id:'d2', name:'Дрип-пакеты Бэрри (30 шт)', category:'Дрип-пакеты', price:1030, unit:'30 шт', weight:0.3, code:'00-00010222' },
+    { id:'d3', name:'Дрип-пакеты Бэрри (50 шт)', category:'Дрип-пакеты', price:1580, unit:'50 шт', weight:0.5, code:'00-00013429' },
+    { id:'d4', name:'Дрип-пакеты Руанда Киву (10 шт)', category:'Дрип-пакеты', price:380, unit:'10 шт', weight:0.1, code:'00-00008254' },
+    { id:'d5', name:'Дрип-пакеты Руанда Киву (50 шт)', category:'Дрип-пакеты', price:1600, unit:'50 шт', weight:0.5, code:'00-00013433' },
+    { id:'d6', name:'Дрип-пакеты Гватемала Сантьяго (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'00-00013486' },
+    { id:'d7', name:'Дрип-пакеты Гватемала Сантьяго (30 шт)', category:'Дрип-пакеты', price:1090, unit:'30 шт', weight:0.3, code:'00-00013715' },
+    { id:'d8', name:'Дрип-пакеты Бразилия Суль-де-Минас (10 шт)', category:'Дрип-пакеты', price:380, unit:'10 шт', weight:0.1, code:'00-00013487' },
+    { id:'d9', name:'Дрип-пакеты Бразилия Суль-де-Минас (30 шт)', category:'Дрип-пакеты', price:1050, unit:'30 шт', weight:0.3, code:'00-00013714' },
+    { id:'d10', name:'Дрип-пакеты Колумбия Декаф (10 шт)', category:'Дрип-пакеты', price:440, unit:'10 шт', weight:0.1, code:'00-00008563' },
+    { id:'d11', name:'Дрип-пакеты Колумбия Уила (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d12', name:'Дрип-пакеты Эфиопия Сидамо (10 шт)', category:'Дрип-пакеты', price:420, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d13', name:'Дрип-пакеты Индонезия Суматра Гайо (10 шт)', category:'Дрип-пакеты', price:430, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d14', name:'Дрип-пакеты Кения Маунт (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d15', name:'Микс дрип-пакетов (20 шт)', category:'Дрип-пакеты', price:940, unit:'20 шт', weight:0.2, code:'' },
+    // === АКСЕССУАРЫ и СИРОПЫ ===
+    { id:'a1', name:'Сироп Gourmix Амаретто (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'00-00010099' },
+    { id:'a2', name:'Сироп Gourmix Ваниль (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a3', name:'Сироп Gourmix Карамель (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a4', name:'Сироп Gourmix Фундук (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a5', name:'Сироп Gourmix Солёная карамель (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a6', name:'Сироп Gourmix Миндаль (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a7', name:'Сироп Gourmix Лаванда (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a8', name:'Сироп Gourmix Каштан (1л)', category:'Аксессуары', price:725, unit:'1 л', weight:0.2, code:'' },
+    { id:'a9', name:'Сухая основа "Банановое мороженое"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'00-00011553' },
+    { id:'a10', name:'Сухая основа "Черничный пломбир"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'00-00014986' },
+    { id:'a11', name:'Сухая основа "Крем-брюле с хурмой"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'' },
+    { id:'a12', name:'Сухая основа "Малина-красный базилик"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'' },
+    { id:'a13', name:'Помпа-дозатор для сиропов', category:'Аксессуары', price:330, unit:'шт', weight:0.05, code:'' }
+];
+
+// ============================================================
+// ФУНКЦИЯ ЗАПОЛНЕНИЯ ТОВАРОВ (если таблица пуста)
+// ============================================================
+function seedProducts() {
+    db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
+        if (err) {
+            console.error('❌ Ошибка проверки товаров:', err.message);
+            return;
+        }
+        if (row.count === 0) {
+            const stmt = db.prepare('INSERT INTO products (id, name, category, price, unit, weight, code) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            allProducts.forEach(p => {
+                stmt.run(p.id, p.name, p.category, p.price, p.unit, p.weight, p.code);
+            });
+            stmt.finalize();
+            console.log(`✅ Добавлено ${allProducts.length} товаров в БД`);
+        } else {
+            console.log(`ℹ️ В БД уже есть ${row.count} товаров`);
+        }
+    });
+}
+
 // === ИНИЦИАЛИЗАЦИЯ БД ===
 function initDatabase() {
     db.serialize(() => {
-        // Таблицы
+        // Создание таблиц
         db.run(`CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -119,34 +258,8 @@ function initDatabase() {
         // Создание админа
         createDefaultAdmin();
 
-        // Заполнение начальными товарами (если таблица пуста)
-        db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
-            if (err) return;
-            if (row.count === 0) {
-                const defaultProducts = [
-                    { id:'p1', name:'Бразилия Серрадо (эспрессо, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00003319' },
-                    { id:'p2', name:'Гватемала Фуэго (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
-                    { id:'p3', name:'Кения Найроби (эспрессо, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
-                    { id:'p4', name:'Колумбия Богота (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
-                    { id:'p5', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00008552' },
-                    { id:'p6', name:'Руанда Кигали (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
-                    { id:'p7', name:'Эфиопия Гуджи (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'00-00008886' },
-                    { id:'p8', name:'Эфиопия Иргачефф (эспрессо, зерно 1кг)', category:'Кофе', price:2300, unit:'1 кг', weight:1, code:'00-00003323' },
-                    { id:'p9', name:'Эфиопия Оромия (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
-                    { id:'p10', name:'Бразилия Серрадо (эспрессо, зерно 250г)', category:'Кофе', price:560, unit:'250 г', weight:0.25, code:'00-00003386' },
-                    { id:'p11', name:'Колумбия Богота (эспрессо, зерно 250г)', category:'Кофе', price:655, unit:'250 г', weight:0.25, code:'' },
-                    { id:'p12', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 250г)', category:'Кофе', price:640, unit:'250 г', weight:0.25, code:'' },
-                    { id:'p13', name:'Эфиопия Гуджи (эспрессо, зерно 250г)', category:'Кофе', price:680, unit:'250 г', weight:0.25, code:'' },
-                    { id:'p14', name:'Эфиопия Иргачефф (эспрессо, зерно 250г)', category:'Кофе', price:600, unit:'250 г', weight:0.25, code:'00-00003390' },
-                ];
-                const stmt = db.prepare('INSERT INTO products (id, name, category, price, unit, weight, code) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                defaultProducts.forEach(p => {
-                    stmt.run(p.id, p.name, p.category, p.price, p.unit, p.weight, p.code);
-                });
-                stmt.finalize();
-                console.log('✅ Добавлены начальные товары (14 позиций)');
-            }
-        });
+        // Заполнение товарами
+        seedProducts();
     });
 }
 
@@ -172,6 +285,7 @@ async function createDefaultAdmin() {
 
 // === ЗАПУСК СЕРВЕРА ===
 let serverStarted = false;
+
 function startServer() {
     if (serverStarted) return;
     serverStarted = true;
@@ -183,6 +297,7 @@ function startServer() {
         process.env.ORIGIN,
         'https://tasty-coffee-production.up.railway.app'
     ].filter(Boolean);
+
     app.use(cors({
         origin: function (origin, callback) {
             if (!origin) return callback(null, true);
@@ -194,6 +309,7 @@ function startServer() {
         },
         credentials: true
     }));
+
     app.set('trust proxy', 1);
     app.use(express.json({ limit: '10mb' }));
     app.use(express.static(path.join(__dirname, 'public')));
@@ -218,6 +334,7 @@ function startServer() {
             });
         });
     }
+
     function setSetting(key, value) {
         return new Promise((resolve, reject) => {
             db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
@@ -229,6 +346,7 @@ function startServer() {
             );
         });
     }
+
     async function getSettings() {
         try {
             const isClosed = await getSetting('is_closed') === 'true';
@@ -241,6 +359,7 @@ function startServer() {
             return { isClosed: false, discount: 10, openDate: new Date().toISOString(), senderEmail: '' };
         }
     }
+
     function isAuthenticated(req, res, next) {
         if (req.session && req.session.isAdmin) {
             next();
@@ -570,6 +689,7 @@ function startServer() {
         });
     });
 
+    // === СОЗДАНИЕ ЗАКАЗА (сокращённый ID) ===
     app.post('/api/orders', async (req, res) => {
         const { email, phone, cart } = req.body;
         if (!cart || cart.length === 0) {
@@ -583,8 +703,15 @@ function startServer() {
             if (settings.isClosed) {
                 return res.status(403).json({ error: 'Закупка закрыта' });
             }
-            const orderId = 'TK-' + Date.now().toString(36).toUpperCase() +
-                Math.random().toString(36).substr(2, 4).toUpperCase();
+
+            // --- Генерация ID в формате ZK-{YYMMDD}{4-значный код} ---
+            const now = new Date();
+            const dateStr = now.getFullYear().toString().slice(-2) +
+                            String(now.getMonth() + 1).padStart(2, '0') +
+                            String(now.getDate()).padStart(2, '0');
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const orderId = `ZK-${dateStr}${randomNum}`;
+
             const orderDate = new Date().toLocaleString('ru-RU');
             const cartJson = JSON.stringify(cart);
             const historyJson = JSON.stringify([{ cart: cart, date: orderDate }]);
