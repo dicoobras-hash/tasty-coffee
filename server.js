@@ -35,7 +35,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // === ИНИЦИАЛИЗАЦИЯ БД (синхронная последовательная) ===
 function initDatabase() {
-    // Создаем таблицы последовательно, чтобы избежать ошибок
     db.serialize(() => {
         // 1. Таблица заказов
         db.run(`
@@ -91,7 +90,6 @@ function initDatabase() {
             if (err) console.error('❌ Ошибка создания settings:', err.message);
             else {
                 console.log('✅ Таблица settings готова');
-                // Инициализируем настройки по умолчанию
                 db.run(`
                     INSERT OR IGNORE INTO settings (key, value) VALUES 
                         ('is_closed', 'false'),
@@ -115,7 +113,6 @@ function initDatabase() {
             if (err) console.error('❌ Ошибка создания admins:', err.message);
             else {
                 console.log('✅ Таблица admins готова');
-                // Создаем админа по умолчанию
                 createDefaultAdmin();
             }
         });
@@ -135,7 +132,6 @@ async function createDefaultAdmin() {
                 } else {
                     console.log('✅ Админ создан (пароль: admin2026)');
                 }
-                // После создания всех таблиц — запускаем сервер
                 startServer();
             }
         );
@@ -145,7 +141,7 @@ async function createDefaultAdmin() {
     }
 }
 
-// === ЗАПУСК СЕРВЕРА ПОСЛЕ ИНИЦИАЛИЗАЦИИ БД ===
+// === ЗАПУСК СЕРВЕРА ===
 let serverStarted = false;
 
 function startServer() {
@@ -166,12 +162,20 @@ function startServer() {
         cookie: {
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000 // 24 часа
+            maxAge: 24 * 60 * 60 * 1000
         }
     }));
 
-    // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+    // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
+    // Раздаём статические файлы из папки public
+    app.use(express.static(path.join(__dirname, 'public')));
 
+    // Для всех остальных запросов отдаём index.html
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+
+    // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
     function getSetting(key) {
         return new Promise((resolve, reject) => {
             db.get('SELECT value FROM settings WHERE key = ?', [key], (err, row) => {
@@ -397,7 +401,6 @@ function startServer() {
                         return res.status(500).json({ error: 'Ошибка создания заказа' });
                     }
 
-                    // Обновляем участника
                     if (name && name !== 'Анонимный участник') {
                         db.get('SELECT * FROM participants WHERE email = ?', [email], (err2, participant) => {
                             if (err2) return;
@@ -507,7 +510,6 @@ function startServer() {
                             return res.status(500).json({ error: 'Ошибка обновления заказа' });
                         }
 
-                        // Обновляем участника
                         if (name && name !== 'Анонимный участник') {
                             db.get('SELECT * FROM participants WHERE email = ?', [email], (err3, participant) => {
                                 if (err3 || !participant) return;
@@ -723,8 +725,8 @@ function startServer() {
 
     // === ЗАПУСК СЕРВЕРА ===
     app.listen(PORT, '0.0.0.0', () => {
-        console.log(`\n🚀 Сервер запущен на http://localhost:${PORT}`);
-        console.log(`🌐 Доступно по сети: http://127.0.0.1:${PORT}`);
+        console.log(`\n🚀 Сервер запущен на порту ${PORT}`);
+        console.log(`🌐 Доступно по сети: http://0.0.0.0:${PORT}`);
         console.log(`🔐 Пароль администратора: admin2026`);
         console.log(`📁 БД: ${DB_PATH}\n`);
     });
