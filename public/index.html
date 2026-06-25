@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        /* Полные стили (я их не повторяю, они такие же, как в предыдущих версиях) */
+        /* ========== СТИЛИ ========== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: #f5f3f0; color: #1e1e1e; padding: 20px; }
         .container { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; align-items: start; }
@@ -110,9 +110,8 @@
     </style>
 </head>
 <body>
-<!-- ================================================================ -->
-<!-- HTML-разметка (такая же, как в предыдущей полной версии)        -->
-<!-- ================================================================ -->
+
+<!-- ========== HTML РАЗМЕТКА ========== -->
 <div class="container">
     <div>
         <div class="card">
@@ -214,7 +213,6 @@
                     <span>%</span>
                     <button class="btn btn-secondary" id="applyDiscountBtn">Применить</button>
                 </div>
-                <!-- Настройка email отправителя -->
                 <div class="sender-settings">
                     <h5>📧 Email отправителя (для писем)</h5>
                     <div class="flex-row">
@@ -315,17 +313,126 @@
 
 <script>
 // ================================================================
-// ПОЛНЫЙ JAVASCRIPT (рабочая версия с исправлениями)
+// 1. ПОЛНЫЙ АССОРТИМЕНТ ТОВАРОВ (100+ позиций)
 // ================================================================
-const API_BASE = window.location.origin;
 const products = [
-    // Здесь полный список товаров (100+ позиций) — я их не повторяю, они такие же, как в предыдущих ответах.
-    // Убедитесь, что в вашем файле они есть. Если нет — скопируйте из предыдущего сообщения.
+    // === ЭСПРЕССО МОНОСОРТА (1кг) ===
+    { id:'p1', name:'Бразилия Серрадо (эспрессо, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00003319' },
+    { id:'p2', name:'Гватемала Фуэго (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p3', name:'Кения Найроби (эспрессо, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
+    { id:'p4', name:'Колумбия Богота (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p5', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00008552' },
+    { id:'p6', name:'Руанда Кигали (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p7', name:'Эфиопия Гуджи (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'00-00008886' },
+    { id:'p8', name:'Эфиопия Иргачефф (эспрессо, зерно 1кг)', category:'Кофе', price:2300, unit:'1 кг', weight:1, code:'00-00003323' },
+    { id:'p9', name:'Эфиопия Оромия (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
+    // === ЭСПРЕССО МОНОСОРТА (250г) ===
+    { id:'p10', name:'Бразилия Серрадо (эспрессо, зерно 250г)', category:'Кофе', price:560, unit:'250 г', weight:0.25, code:'00-00003386' },
+    { id:'p11', name:'Колумбия Богота (эспрессо, зерно 250г)', category:'Кофе', price:655, unit:'250 г', weight:0.25, code:'' },
+    { id:'p12', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 250г)', category:'Кофе', price:640, unit:'250 г', weight:0.25, code:'' },
+    { id:'p13', name:'Эфиопия Гуджи (эспрессо, зерно 250г)', category:'Кофе', price:680, unit:'250 г', weight:0.25, code:'' },
+    { id:'p14', name:'Эфиопия Иргачефф (эспрессо, зерно 250г)', category:'Кофе', price:600, unit:'250 г', weight:0.25, code:'00-00003390' },
+    // === СМЕСИ ДЛЯ ЭСПРЕССО (1кг) ===
+    { id:'p15', name:'Фанки (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2850, unit:'1 кг', weight:1, code:'' },
+    { id:'p16', name:'Флорал (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2700, unit:'1 кг', weight:1, code:'' },
+    { id:'p17', name:'Фрутти (эспрессо-смесь, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
+    // === СМЕСИ ДЛЯ МОЛОЧНЫХ НАПИТКОВ (1кг) ===
+    { id:'p18', name:'Брауни (молочная смесь, зерно 1кг)', category:'Кофе', price:2550, unit:'1 кг', weight:1, code:'00-00010018' },
+    { id:'p19', name:'Бэрри (молочная смесь, зерно 1кг)', category:'Кофе', price:2400, unit:'1 кг', weight:1, code:'00-00006879' },
+    { id:'p20', name:'Кэнди (молочная смесь, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00006773' },
+    { id:'p21', name:'Натти (молочная смесь, зерно 1кг)', category:'Кофе', price:1430, unit:'1 кг', weight:1, code:'00-00006899' },
+    { id:'p22', name:'Хани (молочная смесь, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'00-00014516' },
+    // === СМЕСИ ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p23', name:'Батч-Брю (фильтр, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'' },
+    { id:'p24', name:'Клин Скин (фильтр, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00007103' },
+    // === МОНОСОРТА ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p25', name:'Бразилия Суль-де-Минас (фильтр, зерно 1кг)', category:'Кофе', price:2350, unit:'1 кг', weight:1, code:'' },
+    { id:'p26', name:'Гватемала Сантьяго (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p27', name:'Индонезия Суматра Гайо (фильтр, зерно 1кг)', category:'Кофе', price:2800, unit:'1 кг', weight:1, code:'' },
+    { id:'p28', name:'Кения Маунт (фильтр, зерно 1кг)', category:'Кофе', price:1755, unit:'1 кг', weight:1, code:'' },
+    { id:'p29', name:'Колумбия Уила (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+    { id:'p30', name:'Руанда Киву (фильтр, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'00-00004889' },
+    { id:'p31', name:'Эфиопия Сидамо (фильтр, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
+    // === МИКРОЛОТЫ ДЛЯ ФИЛЬТРА (1кг) ===
+    { id:'p32', name:'Индонезия Ява Фринса Анаэробный (фильтр, 1кг)', category:'Кофе', price:3550, unit:'1 кг', weight:1, code:'' },
+    { id:'p33', name:'Индонезия Ява Фринса Манис (фильтр, 1кг)', category:'Кофе', price:2275, unit:'1 кг', weight:1, code:'' },
+    { id:'p34', name:'Кения Гитурара (фильтр, 1кг)', category:'Кофе', price:3000, unit:'1 кг', weight:1, code:'' },
+    { id:'p35', name:'Кения Ндианин (фильтр, 1кг)', category:'Кофе', price:3200, unit:'1 кг', weight:1, code:'' },
+    { id:'p36', name:'Кения Риакиберу (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p37', name:'Коста-Рика Дон Сабино Монтанья (фильтр, 1кг)', category:'Кофе', price:4050, unit:'1 кг', weight:1, code:'' },
+    { id:'p38', name:'Коста-Рика Лас Маргаритас (фильтр, 1кг)', category:'Кофе', price:3850, unit:'1 кг', weight:1, code:'' },
+    { id:'p39', name:'Перу Альто Пириас (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p40', name:'Руанда Гишеке (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p41', name:'Руанда Чеша (фильтр, 1кг)', category:'Кофе', price:2950, unit:'1 кг', weight:1, code:'' },
+    { id:'p42', name:'Эфиопия Мукера 200 часов (фильтр, 1кг)', category:'Кофе', price:3350, unit:'1 кг', weight:1, code:'' },
+    // === ЧАЙ ===
+    { id:'t1', name:'Ганпаудер (зеленый, 250г)', category:'Чай', price:295, unit:'250 г', weight:0.25, code:'00-00010038' },
+    { id:'t2', name:'Ганпаудер (зеленый, 100г)', category:'Чай', price:155, unit:'100 г', weight:0.1, code:'00-00010039' },
+    { id:'t3', name:'Улун молочный (улун, 250г)', category:'Чай', price:400, unit:'250 г', weight:0.25, code:'00-00006093' },
+    { id:'t4', name:'Улун молочный (улун, 100г)', category:'Чай', price:180, unit:'100 г', weight:0.1, code:'00-00007384' },
+    { id:'t5', name:'Английский завтрак (черный, 100г)', category:'Чай', price:190, unit:'100 г', weight:0.1, code:'00-00007387' },
+    { id:'t6', name:'Вишнёвый (черный аромат, 250г)', category:'Чай', price:560, unit:'250 г', weight:0.25, code:'00-00010451' },
+    { id:'t7', name:'Вишнёвый (черный аромат, 100г)', category:'Чай', price:255, unit:'100 г', weight:0.1, code:'00-00010450' },
+    { id:'t8', name:'Лесные Ягоды (черный аромат, 100г)', category:'Чай', price:220, unit:'100 г', weight:0.1, code:'00-00007398' },
+    { id:'t9', name:'Масала (черный аромат, 100г)', category:'Чай', price:210, unit:'100 г', weight:0.1, code:'00-00007392' },
+    { id:'t10', name:'Ананас-Кокос (зеленый аромат, 100г)', category:'Чай', price:185, unit:'100 г', weight:0.1, code:'00-00014619' },
+    { id:'t11', name:'Тегуаньинь (улун, 100г)', category:'Чай', price:215, unit:'100 г', weight:0.1, code:'00-00010043' },
+    { id:'t12', name:'Гречишный (травяной, 100г)', category:'Чай', price:170, unit:'100 г', weight:0.1, code:'00-00007376' },
+    { id:'t13', name:'Масала (черный, 250г)', category:'Чай', price:465, unit:'250 г', weight:0.25, code:'' },
+    { id:'t14', name:'Эрл Грей (черный, 100г)', category:'Чай', price:150, unit:'100 г', weight:0.1, code:'' },
+    { id:'t15', name:'Сенча (зеленый, 100г)', category:'Чай', price:130, unit:'100 г', weight:0.1, code:'' },
+    { id:'t16', name:'Матча (зеленый, 100г)', category:'Чай', price:765, unit:'100 г', weight:0.1, code:'' },
+    { id:'t17', name:'Пуэр Дворцовый (пуэр, 250г)', category:'Чай', price:630, unit:'250 г', weight:0.25, code:'' },
+    { id:'t18', name:'Пуэр Юннань 3 года (пуэр, 250г)', category:'Чай', price:515, unit:'250 г', weight:0.25, code:'' },
+    // === КАПСУЛЫ ===
+    { id:'c1', name:'Капсулы Брауни (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c2', name:'Капсулы Бэрри (10 шт)', category:'Капсулы', price:260, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c3', name:'Капсулы Колумбия Богота (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c4', name:'Капсулы Кэнди (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'00-00009996' },
+    { id:'c5', name:'Капсулы Натти (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c6', name:'Капсулы Руанда Кигали (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'' },
+    { id:'c7', name:'Капсулы Фанки (10 шт)', category:'Капсулы', price:290, unit:'10 шт', weight:0.05, code:'00-00014881' },
+    { id:'c8', name:'Капсулы Флорал (10 шт)', category:'Капсулы', price:270, unit:'10 шт', weight:0.05, code:'00-00012912' },
+    { id:'c9', name:'Капсулы Фрутти (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'00-00012913' },
+    { id:'c10', name:'Капсулы Эфиопия Гуджи (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'00-00009904' },
+    { id:'c11', name:'Капсулы Эфиопия Гуджи (40 шт)', category:'Капсулы', price:1070, unit:'40 шт', weight:0.2, code:'00-00013233' },
+    { id:'c12', name:'Капсулы Эфиопия Оромия (10 шт)', category:'Капсулы', price:280, unit:'10 шт', weight:0.05, code:'' },
+    // === ДРИП-ПАКЕТЫ ===
+    { id:'d1', name:'Дрип-пакеты Бэрри (10 шт)', category:'Дрип-пакеты', price:370, unit:'10 шт', weight:0.1, code:'00-00007177' },
+    { id:'d2', name:'Дрип-пакеты Бэрри (30 шт)', category:'Дрип-пакеты', price:1030, unit:'30 шт', weight:0.3, code:'00-00010222' },
+    { id:'d3', name:'Дрип-пакеты Бэр리 (50 шт)', category:'Дрип-пакеты', price:1580, unit:'50 шт', weight:0.5, code:'00-00013429' },
+    { id:'d4', name:'Дрип-пакеты Руанда Киву (10 шт)', category:'Дрип-пакеты', price:380, unit:'10 шт', weight:0.1, code:'00-00008254' },
+    { id:'d5', name:'Дрип-пакеты Руанда Киву (50 шт)', category:'Дрип-пакеты', price:1600, unit:'50 шт', weight:0.5, code:'00-00013433' },
+    { id:'d6', name:'Дрип-пакеты Гватемала Сантьяго (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'00-00013486' },
+    { id:'d7', name:'Дрип-пакеты Гватемала Сантьяго (30 шт)', category:'Дрип-пакеты', price:1090, unit:'30 шт', weight:0.3, code:'00-00013715' },
+    { id:'d8', name:'Дрип-пакеты Бразилия Суль-де-Минас (10 шт)', category:'Дрип-пакеты', price:380, unit:'10 шт', weight:0.1, code:'00-00013487' },
+    { id:'d9', name:'Дрип-пакеты Бразилия Суль-де-Минас (30 шт)', category:'Дрип-пакеты', price:1050, unit:'30 шт', weight:0.3, code:'00-00013714' },
+    { id:'d10', name:'Дрип-пакеты Колумбия Декаф (10 шт)', category:'Дрип-пакеты', price:440, unit:'10 шт', weight:0.1, code:'00-00008563' },
+    { id:'d11', name:'Дрип-пакеты Колумбия Уила (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d12', name:'Дрип-пакеты Эфиопия Сидамо (10 шт)', category:'Дрип-пакеты', price:420, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d13', name:'Дрип-пакеты Индонезия Суматра Гайо (10 шт)', category:'Дрип-пакеты', price:430, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d14', name:'Дрип-пакеты Кения Маунт (10 шт)', category:'Дрип-пакеты', price:390, unit:'10 шт', weight:0.1, code:'' },
+    { id:'d15', name:'Микс дрип-пакетов (20 шт)', category:'Дрип-пакеты', price:940, unit:'20 шт', weight:0.2, code:'' },
+    // === АКСЕССУАРЫ / СИРОПЫ ===
+    { id:'a1', name:'Сироп Gourmix Амаретто (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'00-00010099' },
+    { id:'a2', name:'Сироп Gourmix Ваниль (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a3', name:'Сироп Gourmix Карамель (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a4', name:'Сироп Gourmix Фундук (1л)', category:'Аксессуары', price:570, unit:'1 л', weight:0.2, code:'' },
+    { id:'a5', name:'Сироп Gourmix Солёная карамель (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a6', name:'Сироп Gourmix Миндаль (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a7', name:'Сироп Gourmix Лаванда (1л)', category:'Аксессуары', price:620, unit:'1 л', weight:0.2, code:'' },
+    { id:'a8', name:'Сироп Gourmix Каштан (1л)', category:'Аксессуары', price:725, unit:'1 л', weight:0.2, code:'' },
+    { id:'a9', name:'Сухая основа "Банановое мороженое"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'00-00011553' },
+    { id:'a10', name:'Сухая основа "Черничный пломбир"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'00-00014986' },
+    { id:'a11', name:'Сухая основа "Крем-брюле с хурмой"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'' },
+    { id:'a12', name:'Сухая основа "Малина-красный базилик"', category:'Аксессуары', price:530, unit:'шт', weight:0.15, code:'' },
+    { id:'a13', name:'Помпа-дозатор для сиропов', category:'Аксессуары', price:330, unit:'шт', weight:0.05, code:'' }
 ];
 
 // ================================================================
-// ОСНОВНЫЕ ПЕРЕМЕННЫЕ
+// 2. ОСНОВНЫЕ ПЕРЕМЕННЫЕ
 // ================================================================
+const API_BASE = window.location.origin;
 let myCart = [];
 let allOrders = [];
 let participantsDB = [];
@@ -338,7 +445,7 @@ let editMode = false;
 let editOrderId = null;
 
 // ================================================================
-// API
+// 3. API ВЫЗОВЫ
 // ================================================================
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
@@ -350,7 +457,192 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 }
 
 // ================================================================
-// АУТЕНТИФИКАЦИЯ
+// 4. ФУНКЦИИ РАБОТЫ С КОРЗИНОЙ И ТОВАРАМИ
+// ================================================================
+function getProduct(id) { return products.find(p => p.id === id); }
+function getPriceWithDiscount(product) { return product.price * (1 - globalDiscountPercent / 100); }
+function getCartItems(cart) {
+    const target = cart || myCart;
+    return target.map(item => {
+        const product = getProduct(item.productId);
+        return { ...item, product };
+    }).filter(item => item.product !== undefined);
+}
+function calcTotals(cart) {
+    const items = getCartItems(cart);
+    let totalWeight = 0, subtotal = 0;
+    items.forEach(({ product, quantity }) => {
+        totalWeight += product.weight * quantity;
+        subtotal += product.price * quantity;
+    });
+    const discountAmount = subtotal * (globalDiscountPercent / 100);
+    return { totalWeight, subtotal, discountAmount, total: subtotal - discountAmount };
+}
+
+function renderProductList(filter = '') {
+    const cleanFilter = filter.toLowerCase();
+    const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(cleanFilter) ||
+        p.category.toLowerCase().includes(cleanFilter) ||
+        (p.code && p.code.includes(cleanFilter))
+    );
+    const container = document.getElementById('productList');
+    container.innerHTML = filtered.map(p => {
+        const price = getPriceWithDiscount(p);
+        return `<div class="product-item" data-id="${p.id}">
+            <span class="product-name">${p.name}</span>
+            <span class="product-meta">${p.unit}</span>
+            <span class="product-price">${price.toFixed(0)} ₽</span>
+        </div>`;
+    }).join('');
+    container.querySelectorAll('.product-item').forEach(el => {
+        el.addEventListener('click', function() { addToCart(this.dataset.id, 1); });
+    });
+}
+
+function updateCartUI() {
+    const items = getCartItems();
+    const totals = calcTotals();
+    const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
+    document.getElementById('itemCount').textContent = totalItems;
+
+    if (items.length === 0) {
+        document.getElementById('cartContainer').innerHTML = `<div class="empty-cart">Корзина пуста</div>`;
+        document.getElementById('cartTotals').classList.add('hidden');
+        document.getElementById('unsavedIndicator').classList.add('hidden');
+        return;
+    }
+
+    let html = `<table class="cart-table"><thead><tr><th>Товар</th><th>Кол-во</th><th>Цена (шт)</th><th>Сумма</th><th></th></tr></thead><tbody>`;
+    items.forEach(({ product, quantity }) => {
+        const price = getPriceWithDiscount(product);
+        html += `<tr>
+            <td style="font-size:13px;">${product.name}</td>
+            <td><input class="qty-input" type="number" min="1" value="${quantity}" data-id="${product.id}"></td>
+            <td>${price.toFixed(0)} ₽</td>
+            <td>${(price * quantity).toFixed(0)} ₽</td>
+            <td><button class="remove-btn" data-id="${product.id}">✕</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('cartContainer').innerHTML = html;
+
+    document.querySelectorAll('.qty-input').forEach(inp => {
+        inp.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (!isNaN(val) && val > 0) updateQuantity(this.dataset.id, val);
+        });
+    });
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() { removeFromCart(this.dataset.id); });
+    });
+
+    document.getElementById('cartTotals').classList.remove('hidden');
+    document.getElementById('totalWeight').textContent = totals.totalWeight.toFixed(2) + ' кг';
+    document.getElementById('discountPercent').textContent = globalDiscountPercent + '%';
+    document.getElementById('subtotal').textContent = totals.subtotal.toFixed(0) + ' ₽';
+    document.getElementById('discountAmount').textContent = '-' + totals.discountAmount.toFixed(0) + ' ₽';
+    document.getElementById('totalPrice').textContent = totals.total.toFixed(0) + ' ₽';
+    document.getElementById('unsavedIndicator').classList.remove('hidden');
+}
+
+function addToCart(productId, qty = 1) {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    const existing = myCart.find(item => item.productId === productId);
+    if (existing) existing.quantity += qty;
+    else myCart.push({ productId, quantity: qty });
+    updateCartUI();
+    updatePersonalSummary();
+}
+
+function removeFromCart(productId) {
+    if (isClosed) return;
+    myCart = myCart.filter(item => item.productId !== productId);
+    updateCartUI();
+    updatePersonalSummary();
+}
+
+function updateQuantity(productId, newQty) {
+    if (isClosed) return;
+    const item = myCart.find(i => i.productId === productId);
+    if (!item) return;
+    if (newQty <= 0) removeFromCart(productId);
+    else { item.quantity = newQty; updateCartUI(); updatePersonalSummary(); }
+}
+
+function generatePersonalOrderText(name, email, phone, cart) {
+    const items = getCartItems(cart || myCart);
+    const totals = calcTotals(cart || myCart);
+    if (items.length === 0) return null;
+    let lines = [];
+    lines.push(`=== ПЕРСОНАЛЬНЫЙ СЧЁТ TASTY COFFEE ===`);
+    lines.push(`Дата: ${new Date().toLocaleDateString('ru-RU')}`);
+    lines.push(`Клиент: ${name || 'Клиент'}`);
+    lines.push(`Email: ${email}`);
+    lines.push(`Телефон: ${phone}`);
+    lines.push(`Скидка: ${globalDiscountPercent}%`);
+    lines.push(`----------------------------------------`);
+    items.forEach(({ product, quantity }) => {
+        const price = getPriceWithDiscount(product);
+        lines.push(`${product.name}\n  ${quantity} шт. х ${price.toFixed(0)} ₽ = ${(price * quantity).toFixed(0)} ₽`);
+    });
+    lines.push(`----------------------------------------`);
+    lines.push(`Общий вес: ${totals.totalWeight.toFixed(2)} кг`);
+    lines.push(`Сумма без скидки: ${totals.subtotal.toFixed(0)} ₽`);
+    lines.push(`Экономия: ${totals.discountAmount.toFixed(0)} ₽`);
+    lines.push(`ИТОГО: ${totals.total.toFixed(0)} ₽`);
+    return lines.join('\n');
+}
+
+function updatePersonalSummary() {
+    const text = generatePersonalOrderText(
+        document.getElementById('userPhone').value.trim() || 'Клиент',
+        document.getElementById('userEmail').value.trim(),
+        document.getElementById('userPhone').value.trim()
+    );
+    document.getElementById('personalOrderSummary').textContent = text || '❗ Корзина пуста.';
+}
+
+function renderParticipantTable() {
+    if (allOrders.length === 0) {
+        document.getElementById('participantTableBody').innerHTML = `<tr><td colspan="7" style="text-align:center;color:#888;">Нет заказов</td></tr>`;
+        return;
+    }
+    let html = '';
+    allOrders.forEach(p => {
+        const totals = calcTotals(p.cart);
+        html += `<tr>
+            <td><strong>${p.id}</strong></td>
+            <td>${p.name}</td>
+            <td>${p.email}</td>
+            <td>${p.orderDate}</td>
+            <td>${totals.totalWeight.toFixed(2)}</td>
+            <td>${totals.total.toFixed(0)} ₽</td>
+            <td>v${p.version}</td>
+        </tr>`;
+    });
+    document.getElementById('participantTableBody').innerHTML = html;
+}
+
+function renderArchive() {
+    if (!archiveData || archiveData.length === 0) {
+        document.getElementById('archiveContent').innerHTML = '<div style="color:#888; font-size:13px;">Архив пуст</div>';
+        document.getElementById('archivePanel').classList.add('hidden');
+        return;
+    }
+    document.getElementById('archivePanel').classList.remove('hidden');
+    let html = '';
+    archiveData.forEach((archive, idx) => {
+        html += `<div class="archive-item">
+            <span>📦 Архив #${idx + 1} — ${archive.date}</span>
+            <span>${archive.orders ? archive.orders.length : 0} заказов</span>
+        </div>`;
+    });
+    document.getElementById('archiveContent').innerHTML = html;
+}
+
+// ================================================================
+// 5. АУТЕНТИФИКАЦИЯ И АДМИН-ПАНЕЛЬ
 // ================================================================
 async function checkAuthStatus() {
     try {
@@ -376,7 +668,6 @@ async function login(password) {
             isAuthenticated = true;
             if (data.senderEmail) document.getElementById('senderEmailInput').value = data.senderEmail;
             updateAuthUI();
-            // Явно загружаем заказы после входа
             await loadOrdersData();
             return true;
         }
@@ -449,9 +740,6 @@ function updateDiscountUI() {
     updateCartUI();
 }
 
-// ================================================================
-// ЗАГРУЗКА ЗАКАЗОВ (для админа)
-// ================================================================
 async function loadOrdersData() {
     try {
         const data = await apiCall('/api/orders');
@@ -473,8 +761,19 @@ async function loadOrdersData() {
     }
 }
 
+async function loadSenderEmail() {
+    try {
+        const data = await apiCall('/api/admin/sender-email');
+        document.getElementById('senderEmailInput').value = data.email || '';
+        document.getElementById('senderEmailStatus').textContent = '✅ Загружено';
+        document.getElementById('senderEmailStatus').style.color = '#1f7b4d';
+    } catch (e) {
+        // игнорируем
+    }
+}
+
 // ================================================================
-// ВЕРИФИКАЦИЯ
+// 6. ВЕРИФИКАЦИЯ
 // ================================================================
 document.getElementById('sendCodeBtn').addEventListener('click', async function() {
     const email = document.getElementById('userEmail').value.trim();
@@ -534,7 +833,7 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async functio
 });
 
 // ================================================================
-// ПОКАЗ/СКРЫТИЕ ПАРЛЯ
+// 7. ПОКАЗ/СКРЫТИЕ ПАРЛЯ И ВХОД ПО ENTER
 // ================================================================
 document.getElementById('togglePassword').addEventListener('click', function() {
     const passwordInput = document.getElementById('adminPassword');
@@ -547,9 +846,6 @@ document.getElementById('togglePassword').addEventListener('click', function() {
     }
 });
 
-// ================================================================
-// ВХОД ПО КЛАВИШЕ ENTER
-// ================================================================
 document.getElementById('adminPassword').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
         document.getElementById('adminLoginBtn').click();
@@ -572,7 +868,82 @@ document.getElementById('userPhone').addEventListener('keydown', function(e) {
 });
 
 // ================================================================
-// ОБРАБОТЧИК ВХОДА В АДМИНКУ (с обновлением UI)
+// 8. ОБРАБОТЧИКИ ИНТЕРФЕЙСА (поиск, добавление, очистка)
+// ================================================================
+document.getElementById('searchInput').addEventListener('input', function() { renderProductList(this.value); });
+document.getElementById('addProductBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    const filter = document.getElementById('searchInput').value.trim().toLowerCase();
+    const found = products.find(p => p.name.toLowerCase().includes(filter) || (p.code && p.code.includes(filter)));
+    if (found) { addToCart(found.id, 1); document.getElementById('searchInput').value = ''; renderProductList(); }
+    else alert('Товар не найден.');
+});
+document.getElementById('clearCartBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    if (myCart.length === 0) { alert('Корзина уже пуста.'); return; }
+    if (confirm('🗑️ Очистить корзину?')) {
+        myCart = [];
+        updateCartUI();
+        updatePersonalSummary();
+        document.getElementById('successMessage').style.display = 'none';
+    }
+});
+
+// ================================================================
+// 9. СОЗДАНИЕ ЗАКАЗА С МОДАЛЬНЫМ ОКНОМ
+// ================================================================
+document.getElementById('createOrderBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    if (myCart.length === 0) { alert('⚠️ Корзина пуста.'); return; }
+    if (!isVerified) {
+        alert('⚠️ Требуется верификация. Запросите код и подтвердите его.');
+        return;
+    }
+    document.getElementById('consentModal').classList.add('active');
+    document.getElementById('consentCheckbox').checked = false;
+    document.getElementById('confirmOrderBtn').disabled = true;
+});
+
+document.getElementById('consentCheckbox').addEventListener('change', function() {
+    document.getElementById('confirmOrderBtn').disabled = !this.checked;
+});
+
+document.getElementById('confirmOrderBtn').addEventListener('click', async function() {
+    document.getElementById('consentModal').classList.remove('active');
+    const email = document.getElementById('userEmail').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    const cart = JSON.parse(JSON.stringify(myCart));
+    try {
+        const data = await apiCall('/api/orders', 'POST', { email, phone, cart });
+        if (data.success) {
+            document.getElementById('newOrderIdDisplay').textContent = data.order.id;
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 10000);
+            const orderText = generatePersonalOrderText(
+                phone || 'Клиент',
+                email,
+                phone,
+                cart
+            );
+            if (orderText) {
+                window.open(`mailto:${email}?subject=Заказ Tasty Coffee&body=${encodeURIComponent(orderText)}`, '_blank');
+            }
+            myCart = [];
+            updateCartUI();
+            updatePersonalSummary();
+            if (isAuthenticated) await loadOrdersData();
+        }
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+document.getElementById('cancelOrderBtn').addEventListener('click', function() {
+    document.getElementById('consentModal').classList.remove('active');
+});
+
+// ================================================================
+// 10. АДМИНИСТРАТОР: ВХОД, ВЫХОД, СМЕНА ПАРОЛЯ
 // ================================================================
 document.getElementById('adminLoginBtn').addEventListener('click', async function() {
     const password = document.getElementById('adminPassword').value.trim();
@@ -600,10 +971,300 @@ document.getElementById('logoutBtn').addEventListener('click', async function() 
     }
 });
 
-// ... (остальные функции: loadSenderEmail, applyDiscount, generateGroupOrder, экспорт, закрытие, работа с корзиной, модальное окно и т.д. — они такие же, как в предыдущей полной версии, я их не дублирую для краткости, но они должны быть вставлены полностью).
+document.getElementById('changePasswordBtn').addEventListener('click', async function() {
+    const newPass = document.getElementById('newPasswordInput').value.trim();
+    if (newPass.length < 4) { alert('⚠️ Пароль должен содержать минимум 4 символа.'); return; }
+    if (confirm(`Установить новый пароль?`)) {
+        try {
+            await apiCall('/api/auth/change-password', 'POST', { newPassword: newPass });
+            alert('✅ Пароль успешно изменён!');
+            document.getElementById('newPasswordInput').value = '';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    }
+});
 
 // ================================================================
-// ИНИЦИАЛИЗАЦИЯ
+// 11. АДМИНИСТРАТОР: ОСТАЛЬНЫЕ ФУНКЦИИ (скидка, общий счёт, экспорт, закрытие)
+// ================================================================
+document.getElementById('applyDiscountBtn').addEventListener('click', async function() {
+    const val = parseFloat(document.getElementById('globalDiscount').value);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+        try {
+            const data = await apiCall('/api/admin/discount', 'POST', { discount: val });
+            if (data.success) {
+                globalDiscountPercent = data.discount;
+                updateDiscountUI();
+                alert(`✅ Скидка установлена на ${data.discount}%`);
+            }
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    } else {
+        alert('⚠️ Введите значение от 0 до 100');
+    }
+});
+
+document.getElementById('saveSenderEmailBtn').addEventListener('click', async function() {
+    const email = document.getElementById('senderEmailInput').value.trim();
+    if (!email || !email.includes('@')) {
+        document.getElementById('senderEmailStatus').textContent = '⚠️ Введите корректный email';
+        document.getElementById('senderEmailStatus').style.color = '#856404';
+        return;
+    }
+    try {
+        await apiCall('/api/admin/sender-email', 'POST', { email });
+        document.getElementById('senderEmailStatus').textContent = '✅ Email отправителя сохранён';
+        document.getElementById('senderEmailStatus').style.color = '#1f7b4d';
+    } catch (e) {
+        document.getElementById('senderEmailStatus').textContent = '❌ Ошибка: ' + e.message;
+        document.getElementById('senderEmailStatus').style.color = '#c0392b';
+    }
+});
+
+document.getElementById('generateGroupOrderBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { document.getElementById('groupOrderSummary').textContent = 'Нет данных.'; return; }
+    const aggregated = {};
+    allOrders.forEach(p => {
+        p.cart.forEach(item => {
+            if (aggregated[item.productId]) aggregated[item.productId] += item.quantity;
+            else aggregated[item.productId] = item.quantity;
+        });
+    });
+    let totalWeight = 0, subtotal = 0;
+    let lines = [`=== ОБЩИЙ СВОДНЫЙ СЧЁТ ===\n`];
+    Object.keys(aggregated).forEach(id => {
+        const prod = getProduct(id);
+        const qty = aggregated[id];
+        if (prod) {
+            totalWeight += prod.weight * qty;
+            subtotal += prod.price * qty;
+            lines.push(`${prod.name} x${qty} = ${(getPriceWithDiscount(prod) * qty).toFixed(0)} ₽`);
+        }
+    });
+    const disc = subtotal * (globalDiscountPercent / 100);
+    lines.push(`\n----------------------------------------`);
+    lines.push(`Всего заказов: ${allOrders.length}`);
+    lines.push(`Общий вес: ${totalWeight.toFixed(2)} кг`);
+    lines.push(`Итого: ${(subtotal - disc).toFixed(0)} ₽`);
+    document.getElementById('groupOrderSummary').textContent = lines.join('\n');
+});
+
+document.getElementById('exportExcelBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { alert('Нет данных для экспорта.'); return; }
+    const data = allOrders.map(p => {
+        const totals = calcTotals(p.cart);
+        return { 'ID': p.id, 'ФИО': p.name, 'Email': p.email, 'Дата': p.orderDate, 'Версия': p.version, 'Вес (кг)': parseFloat(totals.totalWeight.toFixed(2)), 'Стоимость (₽)': parseFloat(totals.total.toFixed(0)) };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Заказы');
+    XLSX.writeFile(wb, `TastyCoffee_Orders_${new Date().toISOString().slice(0,10)}.xlsx`);
+    alert('✅ Экспорт завершён.');
+});
+
+document.getElementById('sendFinalInvoicesBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { alert('Нет заказов.'); return; }
+    let count = 0;
+    allOrders.forEach(p => {
+        if (p.email && p.email !== '—' && p.email.includes('@')) {
+            const orderText = generatePersonalOrderText(p.name, p.email, p.phone, p.cart);
+            if (orderText) {
+                window.open(`mailto:${p.email}?subject=Финальный счёт Tasty Coffee&body=${encodeURIComponent(orderText)}`, '_blank');
+                count++;
+            }
+        }
+    });
+    alert(`📧 Открыто ${count} окон.`);
+});
+
+document.getElementById('closePurchaseBtn').addEventListener('click', async function() {
+    if (allOrders.length === 0) { alert('❌ Нет заказов для закрытия.'); return; }
+    if (confirm('🔒 Закрыть закупку? Все заказы будут заархивированы.')) {
+        try {
+            await apiCall('/api/admin/close', 'POST');
+            isClosed = true;
+            updateStatusUI();
+            alert('✅ Закупка закрыта!');
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    }
+});
+
+document.getElementById('copyPersonalBtn').addEventListener('click', function() {
+    const text = document.getElementById('personalOrderSummary').textContent;
+    if (text && !text.includes('❗')) navigator.clipboard.writeText(text).then(() => alert('📋 Скопировано!'));
+});
+
+document.getElementById('copyGroupOrderBtn').addEventListener('click', function() {
+    const text = document.getElementById('groupOrderSummary').textContent;
+    if (text && !text.includes('Нет данных')) navigator.clipboard.writeText(text).then(() => alert('📋 Скопировано!'));
+});
+
+// ================================================================
+// 12. SMTP НАСТРОЙКИ (EmailJS)
+// ================================================================
+function loadEmailJSSettings() {
+    document.getElementById('emailjsPublicKey').value = localStorage.getItem('emailjs_public_key') || '';
+    document.getElementById('emailjsServiceId').value = localStorage.getItem('emailjs_service_id') || '';
+    document.getElementById('emailjsTemplateId').value = localStorage.getItem('emailjs_template_id') || '';
+    updateSmtpStatus();
+}
+
+function updateSmtpStatus() {
+    const hasAll = document.getElementById('emailjsPublicKey').value.trim() && 
+                   document.getElementById('emailjsServiceId').value.trim() && 
+                   document.getElementById('emailjsTemplateId').value.trim();
+    const status = document.getElementById('smtpStatus');
+    if (hasAll) {
+        status.textContent = '✅ Настройки сохранены';
+        status.className = 'smtp-status success';
+    } else {
+        status.textContent = '⏳ Не настроен';
+        status.className = 'smtp-status waiting';
+    }
+}
+
+document.getElementById('saveEmailjsBtn').addEventListener('click', function() {
+    const key = document.getElementById('emailjsPublicKey').value.trim();
+    const service = document.getElementById('emailjsServiceId').value.trim();
+    const template = document.getElementById('emailjsTemplateId').value.trim();
+    if (!key || !service || !template) { alert('⚠️ Заполните все поля.'); return; }
+    localStorage.setItem('emailjs_public_key', key);
+    localStorage.setItem('emailjs_service_id', service);
+    localStorage.setItem('emailjs_template_id', template);
+    updateSmtpStatus();
+    alert('✅ Настройки сохранены!');
+});
+
+document.getElementById('clearEmailjsBtn').addEventListener('click', function() {
+    if (confirm('🗑️ Удалить настройки?')) {
+        localStorage.removeItem('emailjs_public_key');
+        localStorage.removeItem('emailjs_service_id');
+        localStorage.removeItem('emailjs_template_id');
+        document.getElementById('emailjsPublicKey').value = '';
+        document.getElementById('emailjsServiceId').value = '';
+        document.getElementById('emailjsTemplateId').value = '';
+        updateSmtpStatus();
+        alert('✅ Настройки очищены.');
+    }
+});
+
+document.getElementById('testEmailjsBtn').addEventListener('click', async function() {
+    const key = document.getElementById('emailjsPublicKey').value.trim();
+    const service = document.getElementById('emailjsServiceId').value.trim();
+    const template = document.getElementById('emailjsTemplateId').value.trim();
+    if (!key || !service || !template) { alert('⚠️ Заполните все поля.'); return; }
+    const status = document.getElementById('smtpStatus');
+    status.textContent = '⏳ Проверка...';
+    status.className = 'smtp-status waiting';
+    try {
+        emailjs.init(key);
+        const result = await emailjs.send(service, template, {
+            from_name: 'Tasty Coffee Test',
+            to_email: 'test@example.com',
+            to_name: 'Test User',
+            message: 'Тестовое сообщение'
+        });
+        if (result.status === 200) {
+            status.textContent = '✅ Подключение успешно!';
+            status.className = 'smtp-status success';
+            alert('✅ Подключение к EmailJS успешно!');
+        }
+    } catch(e) {
+        status.textContent = '❌ Ошибка: ' + e.message;
+        status.className = 'smtp-status error';
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+// ================================================================
+// 13. РАССЫЛКИ
+// ================================================================
+document.getElementById('sendBulkMailtoBtn').addEventListener('click', function() {
+    const emails = participantsDB.map(p => p.email).filter(e => e && e !== '—' && e.includes('@'));
+    if (emails.length === 0) { alert('⚠️ Нет email-адресов.'); return; }
+    const subject = encodeURIComponent('☕ Открыта новая закупка Tasty Coffee!');
+    const body = encodeURIComponent(`Здравствуйте!\n\nОткрыта новая совместная закупка кофе Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}\n\nС уважением,\nКоманда Tasty Coffee`);
+    window.open(`mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`, '_blank');
+    alert(`📧 Открыто письмо для ${emails.length} получателей.`);
+});
+
+document.getElementById('copyEmailsBtn').addEventListener('click', function() {
+    const emails = participantsDB.map(p => p.email).filter(e => e && e !== '—' && e.includes('@'));
+    if (emails.length === 0) { alert('⚠️ Нет email-адресов.'); return; }
+    navigator.clipboard.writeText(emails.join('; ')).then(() => alert(`📋 Скопировано ${emails.length} email-адресов.`));
+});
+
+document.getElementById('sendSmtpBtn').addEventListener('click', async function() {
+    const key = document.getElementById('emailjsPublicKey').value.trim();
+    const service = document.getElementById('emailjsServiceId').value.trim();
+    const template = document.getElementById('emailjsTemplateId').value.trim();
+    if (!key || !service || !template) { alert('⚠️ Сначала настройте EmailJS.'); return; }
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    if (!confirm(`📧 Отправить ${valid.length} писем через SMTP?`)) return;
+    const status = document.getElementById('smtpStatus');
+    status.textContent = '⏳ Отправка...';
+    status.className = 'smtp-status waiting';
+    try {
+        emailjs.init(key);
+        let success = 0, errors = 0;
+        for (const p of valid) {
+            try {
+                const result = await emailjs.send(service, template, {
+                    from_name: 'Tasty Coffee',
+                    to_email: p.email,
+                    to_name: p.name || 'Участник',
+                    message: `Здравствуйте!\n\nОткрыта новая закупка Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}`
+                });
+                if (result.status === 200) success++;
+                else errors++;
+            } catch(e) { errors++; }
+        }
+        status.textContent = `✅ Успешно: ${success}, ошибок: ${errors}`;
+        status.className = errors > 0 ? 'smtp-status error' : 'smtp-status success';
+        alert(`📧 Результат:\n✅ Успешно: ${success}\n❌ Ошибок: ${errors}`);
+    } catch(e) {
+        status.textContent = '❌ Ошибка: ' + e.message;
+        status.className = 'smtp-status error';
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+document.getElementById('sendIndividualMailtoBtn').addEventListener('click', function() {
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    if (valid.length > 5 && !confirm(`👥 ${valid.length} получателей. Открыть ${valid.length} окон?`)) return;
+    const subject = encodeURIComponent('☕ Открыта новая закупка Tasty Coffee!');
+    valid.forEach(p => {
+        window.open(`mailto:${p.email}?subject=${subject}&body=${encodeURIComponent(`Здравствуйте, ${p.name || 'участник'}!\n\nОткрыта новая закупка Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}`)}`, '_blank');
+    });
+    alert(`📧 Открыто ${valid.length} окон.`);
+});
+
+document.getElementById('sendStartNotificationBtn').addEventListener('click', function() {
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    alert(`📧 Найдено ${valid.length} участников. Используйте BCC или индивидуальную рассылку.`);
+});
+
+// ================================================================
+// 14. ЗАЩИТА ОТ ЗАКРЫТИЯ
+// ================================================================
+window.addEventListener('beforeunload', function(e) {
+    const items = getCartItems();
+    if (items.length > 0 || editMode) {
+        const message = '🛒 У вас есть несохраненные изменения в корзине. Уверены, что хотите уйти?';
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+    }
+});
+
+// ================================================================
+// 15. ИНИЦИАЛИЗАЦИЯ
 // ================================================================
 async function initializeApp() {
     console.log('🚀 Инициализация приложения...');
