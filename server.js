@@ -1,4 +1,4 @@
-const express = require('express');
+ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
@@ -33,10 +33,9 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     }
 });
 
-// === ИНИЦИАЛИЗАЦИЯ БД (синхронная последовательная) ===
+// === ИНИЦИАЛИЗАЦИЯ БД ===
 function initDatabase() {
     db.serialize(() => {
-        // 1. Таблица заказов
         db.run(`
             CREATE TABLE IF NOT EXISTS orders (
                 id TEXT PRIMARY KEY,
@@ -53,7 +52,6 @@ function initDatabase() {
             else console.log('✅ Таблица orders готова');
         });
 
-        // 2. Таблица участников
         db.run(`
             CREATE TABLE IF NOT EXISTS participants (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +65,6 @@ function initDatabase() {
             else console.log('✅ Таблица participants готова');
         });
 
-        // 3. Таблица архивов
         db.run(`
             CREATE TABLE IF NOT EXISTS archives (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +77,6 @@ function initDatabase() {
             else console.log('✅ Таблица archives готова');
         });
 
-        // 4. Таблица настроек
         db.run(`
             CREATE TABLE IF NOT EXISTS settings (
                 key TEXT PRIMARY KEY,
@@ -102,7 +98,6 @@ function initDatabase() {
             }
         });
 
-        // 5. Таблица админов
         db.run(`
             CREATE TABLE IF NOT EXISTS admins (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,7 +114,7 @@ function initDatabase() {
     });
 }
 
-// === СОЗДАНИЕ АДМИНА ПО УМОЛЧАНИЮ ===
+// === СОЗДАНИЕ АДМИНА ===
 async function createDefaultAdmin() {
     try {
         const hash = await bcrypt.hash('admin2026', 10);
@@ -154,7 +149,8 @@ function startServer() {
         credentials: true
     }));
     app.use(express.json({ limit: '10mb' }));
-    app.use(express.static('public'));
+    // Раздаём статические файлы из папки public (ПЕРВЫЙ РАЗ)
+    app.use(express.static(path.join(__dirname, 'public')));
     app.use(session({
         secret: SESSION_SECRET,
         resave: false,
@@ -166,10 +162,6 @@ function startServer() {
         }
     }));
 
-    // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
-    // Раздаём статические файлы из папки public
-    app.use(express.static(path.join(__dirname, 'public')));
- 
     // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
     function getSetting(key) {
         return new Promise((resolve, reject) => {
@@ -214,7 +206,6 @@ function startServer() {
 
     // === API ЭНДПОИНТЫ ===
 
-    // 1. Проверка статуса
     app.get('/api/auth/status', async (req, res) => {
         try {
             const settings = await getSettings();
@@ -229,26 +220,20 @@ function startServer() {
         }
     });
 
-    // 2. Вход
     app.post('/api/auth/login', async (req, res) => {
         const { password } = req.body;
-
         if (!password) {
             return res.status(400).json({ error: 'Пароль обязателен' });
         }
-
         try {
             db.get('SELECT password_hash FROM admins WHERE username = ?', ['admin'], async (err, row) => {
                 if (err || !row) {
                     return res.status(401).json({ error: 'Неверный пароль' });
                 }
-
                 const isValid = await bcrypt.compare(password, row.password_hash);
-
                 if (isValid) {
                     req.session.isAdmin = true;
                     req.session.userId = 'admin';
-
                     const settings = await getSettings();
                     res.json({
                         success: true,
@@ -265,7 +250,6 @@ function startServer() {
         }
     });
 
-    // 3. Выход
     app.post('/api/auth/logout', (req, res) => {
         req.session.destroy((err) => {
             if (err) {
@@ -275,14 +259,11 @@ function startServer() {
         });
     });
 
-    // 4. Смена пароля (только для админа)
     app.post('/api/auth/change-password', isAuthenticated, async (req, res) => {
         const { newPassword } = req.body;
-
         if (!newPassword || newPassword.length < 4) {
             return res.status(400).json({ error: 'Пароль должен содержать минимум 4 символа' });
         }
-
         try {
             const hash = await bcrypt.hash(newPassword, 10);
             db.run('UPDATE admins SET password_hash = ? WHERE username = ?',
@@ -300,26 +281,20 @@ function startServer() {
         }
     });
 
-    // === ЗАКАЗЫ ===
-
-    // 5. Получить все заказы (админ)
     app.get('/api/orders', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM orders ORDER BY order_date DESC', async (err, orders) => {
             if (err) {
                 return res.status(500).json({ error: 'Ошибка получения заказов' });
             }
-
             db.all('SELECT * FROM participants', (err2, participants) => {
                 if (err2) {
                     return res.status(500).json({ error: 'Ошибка получения участников' });
                 }
-
                 getSettings().then(settings => {
                     db.all('SELECT * FROM archives ORDER BY date DESC', (err3, archives) => {
                         if (err3) {
                             return res.status(500).json({ error: 'Ошибка получения архивов' });
                         }
-
                         const parsedOrders = (orders || []).map(o => {
                             try {
                                 return {
@@ -331,7 +306,6 @@ function startServer() {
                                 return { ...o, cart: [], history: [] };
                             }
                         });
-
                         res.json({
                             orders: parsedOrders,
                             participants: (participants || []).map(p => {
@@ -366,23 +340,18 @@ function startServer() {
         });
     });
 
-    // 6. Создать заказ (публичный)
     app.post('/api/orders', async (req, res) => {
         const { name, email, phone, cart } = req.body;
-
         if (!cart || cart.length === 0) {
             return res.status(400).json({ error: 'Корзина пуста' });
         }
-
         try {
             const settings = await getSettings();
             if (settings.isClosed) {
                 return res.status(403).json({ error: 'Закупка закрыта' });
             }
-
             const orderId = 'TK-' + Date.now().toString(36).toUpperCase() +
                 Math.random().toString(36).substr(2, 4).toUpperCase();
-
             const orderDate = new Date().toLocaleString('ru-RU');
             const cartJson = JSON.stringify(cart);
             const historyJson = JSON.stringify([{ cart: cart, date: orderDate }]);
@@ -395,11 +364,9 @@ function startServer() {
                     if (err) {
                         return res.status(500).json({ error: 'Ошибка создания заказа' });
                     }
-
                     if (name && name !== 'Анонимный участник') {
                         db.get('SELECT * FROM participants WHERE email = ?', [email], (err2, participant) => {
                             if (err2) return;
-
                             if (participant) {
                                 try {
                                     const orders = JSON.parse(participant.orders || '[]');
@@ -417,7 +384,6 @@ function startServer() {
                             }
                         });
                     }
-
                     res.json({
                         success: true,
                         order: {
@@ -438,7 +404,6 @@ function startServer() {
         }
     });
 
-    // 7. Получить заказ по ID (публичный)
     app.get('/api/orders/:id', (req, res) => {
         db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, order) => {
             if (err || !order) {
@@ -458,25 +423,20 @@ function startServer() {
         });
     });
 
-    // 8. Обновить заказ (публичный)
     app.put('/api/orders/:id', async (req, res) => {
         try {
             const settings = await getSettings();
             if (settings.isClosed) {
                 return res.status(403).json({ error: 'Закупка закрыта' });
             }
-
             const { name, email, phone, cart } = req.body;
-
             if (!cart || cart.length === 0) {
                 return res.status(400).json({ error: 'Корзина пуста' });
             }
-
             db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, order) => {
                 if (err || !order) {
                     return res.status(404).json({ error: 'Заказ не найден' });
                 }
-
                 const version = order.version + 1;
                 let history = [];
                 try {
@@ -504,7 +464,6 @@ function startServer() {
                         if (err2) {
                             return res.status(500).json({ error: 'Ошибка обновления заказа' });
                         }
-
                         if (name && name !== 'Анонимный участник') {
                             db.get('SELECT * FROM participants WHERE email = ?', [email], (err3, participant) => {
                                 if (err3 || !participant) return;
@@ -522,7 +481,6 @@ function startServer() {
                                 }
                             });
                         }
-
                         res.json({
                             success: true,
                             order: {
@@ -543,7 +501,6 @@ function startServer() {
         }
     });
 
-    // 9. Получить участника по email (публичный)
     app.get('/api/participants/:email', (req, res) => {
         db.get('SELECT * FROM participants WHERE email = ?', [req.params.email], (err, participant) => {
             if (err || !participant) {
@@ -562,9 +519,6 @@ function startServer() {
         });
     });
 
-    // === АДМИНИСТРАТИВНЫЕ ===
-
-    // 10. Получить всех участников (админ)
     app.get('/api/admin/participants', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM participants', (err, participants) => {
             if (err) {
@@ -585,13 +539,11 @@ function startServer() {
         });
     });
 
-    // 11. Закрыть закупку (админ)
     app.post('/api/admin/close', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM orders', (err, orders) => {
             if (err || !orders || orders.length === 0) {
                 return res.status(400).json({ error: 'Нет заказов для закрытия' });
             }
-
             const archiveDate = new Date().toLocaleString('ru-RU');
             const archiveData = JSON.stringify((orders || []).map(o => {
                 try {
@@ -611,7 +563,6 @@ function startServer() {
                     if (err2) {
                         return res.status(500).json({ error: 'Ошибка архивации' });
                     }
-
                     setSetting('is_closed', 'true').then(() => {
                         db.all('SELECT * FROM archives ORDER BY date DESC', (err3, archives) => {
                             res.json({
@@ -637,13 +588,11 @@ function startServer() {
         });
     });
 
-    // 12. Обновить скидку (админ)
     app.post('/api/admin/discount', isAuthenticated, (req, res) => {
         const { discount } = req.body;
         if (discount === undefined || discount < 0 || discount > 100) {
             return res.status(400).json({ error: 'Скидка должна быть от 0 до 100' });
         }
-
         setSetting('discount', String(discount)).then(() => {
             res.json({ success: true, discount: discount });
         }).catch(() => {
@@ -651,7 +600,6 @@ function startServer() {
         });
     });
 
-    // 13. Получить архив (админ)
     app.get('/api/admin/archive', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM archives ORDER BY date DESC', (err, archives) => {
             if (err) {
@@ -672,13 +620,11 @@ function startServer() {
         });
     });
 
-    // 14. Экспорт в CSV (админ)
     app.get('/api/admin/export', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM orders', (err, orders) => {
             if (err) {
                 return res.status(500).json({ error: 'Ошибка экспорта' });
             }
-
             const data = (orders || []).map(o => {
                 let cart = [];
                 try {
@@ -698,12 +644,10 @@ function startServer() {
                     'Вес (кг)': totalWeight.toFixed(2)
                 };
             });
-
             res.json({ data: data });
         });
     });
 
-    // 15. Уведомление о старте (админ)
     app.post('/api/admin/notify-start', isAuthenticated, (req, res) => {
         db.all('SELECT email FROM participants WHERE email IS NOT NULL AND email != ?', ['—'], (err, rows) => {
             if (err) {
@@ -718,23 +662,21 @@ function startServer() {
         });
     });
 
+    // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
+    // Раздаём статические файлы (уже сделано в middleware, но для надёжности можно продублировать)
+    // Для всех остальных запросов, не обработанных выше, отдаём index.html
+    // ЭТОТ БЛОК ДОЛЖЕН БЫТЬ В КОНЦЕ!
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+
     // === ЗАПУСК СЕРВЕРА ===
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n🚀 Сервер запущен на порту ${PORT}`);
-        console.log(`🌐 Доступно по сети: http://0.0.0.0:${PORT}`);
         console.log(`🔐 Пароль администратора: admin2026`);
         console.log(`📁 БД: ${DB_PATH}\n`);
     });
 }
-    // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
-    // Раздаём статические файлы из папки public
-    app.use(express.static(path.join(__dirname, 'public')));
-    
-    // Для всех остальных запросов, не обработанных выше, отдаём index.html
-    // Это должен быть последний маршрут!
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    });
 
 // Если БД уже инициализирована, но сервер не запущен
 setTimeout(() => {
