@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -29,9 +30,30 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     }
 });
 
+// === НАСТРОЙКА NODEMAILER ===
+let transporter = null;
+function initMailer() {
+    const host = process.env.SMTP_HOST || 'smtp.mail.ru';
+    const port = parseInt(process.env.SMTP_PORT) || 465;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    if (user && pass) {
+        transporter = nodemailer.createTransport({
+            host,
+            port,
+            secure: port === 465,
+            auth: { user, pass }
+        });
+        console.log('✅ SMTP настроен (Nodemailer)');
+    } else {
+        console.warn('⚠️ SMTP не настроен (укажите SMTP_USER и SMTP_PASS)');
+    }
+}
+
 // === ИНИЦИАЛИЗАЦИЯ БД ===
 function initDatabase() {
     db.serialize(() => {
+        // Таблица заказов
         db.run(`CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -40,9 +62,12 @@ function initDatabase() {
             cart TEXT NOT NULL,
             order_date TEXT NOT NULL,
             version INTEGER DEFAULT 1,
-            history TEXT DEFAULT '[]'
+            history TEXT DEFAULT '[]',
+            status TEXT DEFAULT 'new',
+            closed_date TEXT
         )`);
 
+        // Таблица участников
         db.run(`CREATE TABLE IF NOT EXISTS participants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -51,6 +76,7 @@ function initDatabase() {
             orders TEXT DEFAULT '[]'
         )`);
 
+        // Таблица архивов
         db.run(`CREATE TABLE IF NOT EXISTS archives (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
@@ -58,17 +84,20 @@ function initDatabase() {
             discount INTEGER DEFAULT 10
         )`);
 
+        // Таблица настроек
         db.run(`CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         )`);
 
+        // Таблица админов
         db.run(`CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL
         )`);
 
+        // Таблица кодов верификации
         db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
             email TEXT PRIMARY KEY,
             code TEXT NOT NULL,
@@ -76,6 +105,25 @@ function initDatabase() {
             expires_at INTEGER NOT NULL
         )`);
 
+        // === НОВАЯ ТАБЛИЦА ДЛЯ ТОВАРОВ (CRUD) ===
+        db.run(`CREATE TABLE IF NOT EXISTS products (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT,
+            price REAL NOT NULL,
+            unit TEXT,
+            weight REAL,
+            code TEXT,
+            description TEXT,
+            image TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // Индексы для производительности
+        db.run(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`);
+        db.run(`CREATE INDEX IF NOT EXISTS idx_orders_closed_date ON orders(closed_date)`);
+
+        // Настройки по умолчанию
         db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES 
             ('is_closed', 'false'),
             ('discount', '10'),
@@ -95,11 +143,13 @@ async function createDefaultAdmin() {
             (err) => {
                 if (err) console.error('❌ Ошибка создания админа:', err.message);
                 else console.log('✅ Админ создан (пароль: admin2026)');
+                initMailer(); // Настраиваем SMTP после БД
                 startServer();
             }
         );
     } catch (e) {
         console.error('❌ Ошибка хеширования пароля:', e.message);
+        initMailer();
         startServer();
     }
 }
@@ -139,11 +189,11 @@ function startServer() {
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000,
             sameSite: 'lax'
-                }
+        }
     }));
 
     // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
@@ -293,8 +343,10 @@ function startServer() {
     app.post('/api/auth/logout', (req, res) => {
         req.session.destroy((err) => {
             if (err) {
+                console.error('Ошибка выхода:', err);
                 return res.status(500).json({ error: 'Ошибка выхода' });
             }
+            res.clearCookie('connect.sid'); // очищаем куку
             res.json({ success: true });
         });
     });
@@ -341,6 +393,105 @@ function startServer() {
         } catch (e) {
             res.status(500).json({ error: 'Ошибка получения email' });
         }
+    });
+
+    // === CRUD ТОВАРОВ (только для админа) ===
+    app.get('/api/admin/products', isAuthenticated, (req, res) => {
+        db.all('SELECT * FROM products ORDER BY name', (err, products) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ products });
+        });
+    });
+
+    app.post('/api/admin/products', isAuthenticated, (req, res) => {
+        const { name, category, price, unit, weight, code, description } = req.body;
+        if (!name || price === undefined) {
+            return res.status(400).json({ error: 'Название и цена обязательны' });
+        }
+        const id = 'p' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+        db.run(
+            `INSERT INTO products (id, name, category, price, unit, weight, code, description)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [id, name, category, price, unit, weight, code, description],
+            (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, id });
+            }
+        );
+    });
+
+    app.put('/api/admin/products/:id', isAuthenticated, (req, res) => {
+        const { name, category, price, unit, weight, code, description } = req.body;
+        db.run(
+            `UPDATE products SET name=?, category=?, price=?, unit=?, weight=?, code=?, description=?
+             WHERE id = ?`,
+            [name, category, price, unit, weight, code, description, req.params.id],
+            (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+            }
+        );
+    });
+
+    app.delete('/api/admin/products/:id', isAuthenticated, (req, res) => {
+        db.run('DELETE FROM products WHERE id = ?', [req.params.id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true });
+        });
+    });
+
+    // === АНАЛИТИКА: БЕСТСЕЛЛЕРЫ ===
+    app.get('/api/analytics/bestsellers', isAuthenticated, (req, res) => {
+        db.all(
+            `SELECT cart, status FROM orders WHERE status IN ('closed', 'completed')`,
+            (err, orders) => {
+                if (err) return res.status(500).json({ error: err.message });
+
+                const productCount = {};
+                orders.forEach(order => {
+                    try {
+                        const cart = JSON.parse(order.cart || '[]');
+                        cart.forEach(item => {
+                            const id = item.productId;
+                            const qty = item.quantity || 1;
+                            productCount[id] = (productCount[id] || 0) + qty;
+                        });
+                    } catch(e) {}
+                });
+
+                const ids = Object.keys(productCount);
+                if (ids.length === 0) {
+                    return res.json({ bestsellers: [] });
+                }
+                const placeholders = ids.map(() => '?').join(',');
+                db.all(`SELECT id, name, price FROM products WHERE id IN (${placeholders})`, ids, (err, products) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    const result = products.map(p => ({
+                        ...p,
+                        total_quantity: productCount[p.id] || 0
+                    })).sort((a, b) => b.total_quantity - a.total_quantity);
+                    res.json({ bestsellers: result });
+                });
+            }
+        );
+    });
+
+    // === ИНДИВИДУАЛЬНЫЙ СТАТУС ЗАКАЗА ===
+    app.patch('/api/admin/orders/:id/status', isAuthenticated, (req, res) => {
+        const { status } = req.body;
+        const allowed = ['new', 'processing', 'shipped', 'closed', 'cancelled'];
+        if (!allowed.includes(status)) {
+            return res.status(400).json({ error: 'Недопустимый статус' });
+        }
+        const closedDate = status === 'closed' ? new Date().toISOString() : null;
+        db.run(
+            `UPDATE orders SET status = ?, closed_date = ? WHERE id = ?`,
+            [status, closedDate, req.params.id],
+            (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+            }
+        );
     });
 
     // === ЗАКАЗЫ ===
@@ -423,16 +574,18 @@ function startServer() {
             const historyJson = JSON.stringify([{ cart: cart, date: orderDate }]);
 
             const name = phone || 'Клиент';
+            const status = 'new';
 
             db.run(
-                `INSERT INTO orders (id, name, email, phone, cart, order_date, version, history) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [orderId, name, email, phone, cartJson, orderDate, 1, historyJson],
+                `INSERT INTO orders (id, name, email, phone, cart, order_date, version, history, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [orderId, name, email, phone, cartJson, orderDate, 1, historyJson, status],
                 async (err) => {
                     if (err) {
                         console.error('Ошибка вставки заказа:', err.message);
                         return res.status(500).json({ error: 'Ошибка создания заказа' });
                     }
+                    // Обновляем участника
                     db.get('SELECT * FROM participants WHERE email = ?', [email], (err2, participant) => {
                         if (err2) return;
                         if (participant) {
@@ -451,6 +604,27 @@ function startServer() {
                                 [name, email, phone || '', JSON.stringify(orders)]);
                         }
                     });
+
+                    // Отправка письма через Nodemailer
+                    if (transporter) {
+                        try {
+                            const orderText = generateOrderEmail(name, email, phone, cart, orderId, orderDate);
+                            const fromEmail = await getSetting('sender_email') || process.env.SMTP_FROM || process.env.SMTP_USER;
+                            await transporter.sendMail({
+                                from: fromEmail,
+                                to: email,
+                                subject: 'Ваш заказ Tasty Coffee',
+                                text: orderText,
+                                html: orderText.replace(/\n/g, '<br>')
+                            });
+                            console.log('✅ Письмо отправлено на', email);
+                        } catch (err) {
+                            console.error('❌ Ошибка отправки письма:', err);
+                        }
+                    } else {
+                        console.warn('⚠️ SMTP не настроен, письмо не отправлено');
+                    }
+
                     res.json({
                         success: true,
                         order: {
@@ -461,7 +635,8 @@ function startServer() {
                             cart: cart,
                             orderDate: orderDate,
                             version: 1,
-                            history: [{ cart: cart, date: orderDate }]
+                            history: [{ cart: cart, date: orderDate }],
+                            status: status
                         }
                     });
                 }
@@ -471,6 +646,14 @@ function startServer() {
             res.status(500).json({ error: 'Ошибка создания заказа' });
         }
     });
+
+    function generateOrderEmail(name, email, phone, cart, orderId, orderDate) {
+        const items = cart.map(item => {
+            const product = { name: item.productId, price: 0 }; // заглушка, можно подгрузить из БД
+            return `  ${item.quantity} шт. х ${item.productId}`;
+        }).join('\n');
+        return `=== ПЕРСОНАЛЬНЫЙ СЧЁТ TASTY COFFEE ===\nДата: ${orderDate}\nКлиент: ${name}\nEmail: ${email}\nТелефон: ${phone}\n----------------------------------------\n${items}\n----------------------------------------\nИтого: ${cart.reduce((sum, i) => sum + (i.quantity || 0)*100, 0)} ₽\nВаш ID: ${orderId}`;
+    }
 
     app.get('/api/orders/:id', (req, res) => {
         db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, order) => {
@@ -560,7 +743,8 @@ function startServer() {
                                 phone: phone || order.phone,
                                 cart: cart,
                                 version: version,
-                                history: history
+                                history: history,
+                                status: order.status || 'new'
                             }
                         });
                     }
@@ -711,7 +895,8 @@ function startServer() {
                     'Email': o.email,
                     'Дата': o.order_date,
                     'Версия': o.version,
-                    'Вес (кг)': totalWeight.toFixed(2)
+                    'Вес (кг)': totalWeight.toFixed(2),
+                    'Статус': o.status || 'new'
                 };
             });
             res.json({ data: data });
