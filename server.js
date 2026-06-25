@@ -32,7 +32,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 // === ИНИЦИАЛИЗАЦИЯ БД ===
 function initDatabase() {
     db.serialize(() => {
-        // Таблица заказов
         db.run(`CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -44,7 +43,6 @@ function initDatabase() {
             history TEXT DEFAULT '[]'
         )`);
 
-        // Таблица участников
         db.run(`CREATE TABLE IF NOT EXISTS participants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -53,7 +51,6 @@ function initDatabase() {
             orders TEXT DEFAULT '[]'
         )`);
 
-        // Таблица архивов
         db.run(`CREATE TABLE IF NOT EXISTS archives (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
@@ -61,20 +58,17 @@ function initDatabase() {
             discount INTEGER DEFAULT 10
         )`);
 
-        // Таблица настроек
         db.run(`CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         )`);
 
-        // Таблица админов
         db.run(`CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL
         )`);
 
-        // Таблица кодов верификации
         db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
             email TEXT PRIMARY KEY,
             code TEXT NOT NULL,
@@ -82,19 +76,16 @@ function initDatabase() {
             expires_at INTEGER NOT NULL
         )`);
 
-        // Настройки по умолчанию
         db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES 
             ('is_closed', 'false'),
             ('discount', '10'),
             ('open_date', ?),
             ('sender_email', '')`, [new Date().toISOString()]);
 
-        // Создание админа
         createDefaultAdmin();
     });
 }
 
-// === СОЗДАНИЕ АДМИНА ===
 async function createDefaultAdmin() {
     try {
         const hash = await bcrypt.hash('admin2026', 10);
@@ -112,20 +103,37 @@ async function createDefaultAdmin() {
     }
 }
 
-// === ЗАПУСК СЕРВЕРА ===
 let serverStarted = false;
 
 function startServer() {
     if (serverStarted) return;
     serverStarted = true;
 
-    // === MIDDLEWARE ===
+    // === CORS (динамический) ===
+    const allowedOrigins = [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        process.env.ORIGIN,
+        'https://tasty-coffee-production.up.railway.app'
+    ].filter(Boolean);
+
     app.use(cors({
-        origin: ['http://localhost:3000', 'http://127.0.0.1:3000', process.env.ORIGIN],
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
         credentials: true
     }));
+
+    app.set('trust proxy', 1); // доверять прокси (Railway)
+
     app.use(express.json({ limit: '10mb' }));
     app.use(express.static(path.join(__dirname, 'public')));
+
     app.use(session({
         secret: SESSION_SECRET,
         resave: false,
@@ -133,7 +141,8 @@ function startServer() {
         cookie: {
             secure: process.env.NODE_ENV === 'production',
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000,
+            sameSite: 'lax'
         }
     }));
 
@@ -197,8 +206,6 @@ function startServer() {
                     console.error('Ошибка сохранения кода:', err.message);
                     return res.status(500).json({ error: 'Ошибка сервера' });
                 }
-                // В реальном приложении здесь отправка на email через EmailJS
-                // Пока возвращаем код в ответе для отладки (в production убрать!)
                 res.json({ success: true, code: code, message: 'Код отправлен на email' });
             }
         );
@@ -260,13 +267,19 @@ function startServer() {
                 if (isValid) {
                     req.session.isAdmin = true;
                     req.session.userId = 'admin';
-                    const settings = await getSettings();
-                    res.json({
-                        success: true,
-                        isAuthenticated: true,
-                        isClosed: settings.isClosed,
-                        discount: settings.discount,
-                        senderEmail: settings.senderEmail
+                    req.session.save(async (err) => {
+                        if (err) {
+                            console.error('Ошибка сохранения сессии:', err);
+                            return res.status(500).json({ error: 'Ошибка сохранения сессии' });
+                        }
+                        const settings = await getSettings();
+                        res.json({
+                            success: true,
+                            isAuthenticated: true,
+                            isClosed: settings.isClosed,
+                            discount: settings.discount,
+                            senderEmail: settings.senderEmail
+                        });
                     });
                 } else {
                     res.status(401).json({ error: 'Неверный пароль' });
@@ -719,7 +732,7 @@ function startServer() {
         });
     });
 
-    // === СТАТИКА (должна быть в конце) ===
+    // === СТАТИКА ===
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
