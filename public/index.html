@@ -436,7 +436,6 @@ const products = [
 let myCart = [], allOrders = [], participantsDB = [], archiveData = [];
 let isClosed = false, globalDiscountPercent = 10, editMode = false, editOrderId = null, isAuthenticated = false;
 
-// API функции
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
     if (body) options.body = JSON.stringify(body);
@@ -484,22 +483,38 @@ async function logout() {
     document.getElementById('changePasswordBlock').classList.add('hidden');
 }
 
+// Исправленная функция loadOrdersData — обрабатывает 401
 async function loadOrdersData() {
-    const data = await apiCall('/api/orders');
-    allOrders = data.orders || [];
-    participantsDB = data.participants || [];
-    isClosed = data.isClosed || false;
-    globalDiscountPercent = data.discount || 10;
-    archiveData = data.archive || [];
-    renderParticipantTable();
-    renderArchive();
-    updateStatusUI();
-    updateDiscountUI();
+    try {
+        const data = await apiCall('/api/orders');
+        allOrders = data.orders || [];
+        participantsDB = data.participants || [];
+        isClosed = data.isClosed || false;
+        globalDiscountPercent = data.discount || 10;
+        archiveData = data.archive || [];
+        renderParticipantTable();
+        renderArchive();
+        updateStatusUI();
+        updateDiscountUI();
+    } catch (e) {
+        if (e.message === 'Не авторизован') {
+            // Просто игнорируем — гость не может видеть заказы
+            console.log('ℹ️ Заказы доступны только после входа в админ-панель');
+            return;
+        }
+        console.error('Ошибка загрузки заказов:', e);
+    }
 }
 
+// Исправленная функция createOrder — не вызывает loadOrdersData для гостей
 async function createOrder(name, email, phone, cart) {
     const data = await apiCall('/api/orders', 'POST', { name, email, phone, cart });
-    if (data.success) { await loadOrdersData(); return data.order; }
+    if (data.success) {
+        if (isAuthenticated) {
+            await loadOrdersData();
+        }
+        return data.order;
+    }
     return null;
 }
 
@@ -510,7 +525,12 @@ async function getOrder(id) {
 
 async function updateOrder(id, name, email, phone, cart) {
     const data = await apiCall(`/api/orders/${id}`, 'PUT', { name, email, phone, cart });
-    if (data.success) { await loadOrdersData(); return data.order; }
+    if (data.success) {
+        if (isAuthenticated) {
+            await loadOrdersData();
+        }
+        return data.order;
+    }
     return null;
 }
 
