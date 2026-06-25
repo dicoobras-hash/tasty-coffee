@@ -169,12 +169,7 @@ function startServer() {
     // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
     // Раздаём статические файлы из папки public
     app.use(express.static(path.join(__dirname, 'public')));
-
-    // Для всех остальных запросов отдаём index.html
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    });
-
+ 
     // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
     function getSetting(key) {
         return new Promise((resolve, reject) => {
@@ -731,6 +726,15 @@ function startServer() {
         console.log(`📁 БД: ${DB_PATH}\n`);
     });
 }
+    // === СТАТИЧЕСКИЕ ФАЙЛЫ И МАРШРУТЫ ===
+    // Раздаём статические файлы из папки public
+    app.use(express.static(path.join(__dirname, 'public')));
+    
+    // Для всех остальных запросов, не обработанных выше, отдаём index.html
+    // Это должен быть последний маршрут!
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
 
 // Если БД уже инициализирована, но сервер не запущен
 setTimeout(() => {
