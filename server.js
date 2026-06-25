@@ -53,7 +53,7 @@ function initMailer() {
 // === ИНИЦИАЛИЗАЦИЯ БД ===
 function initDatabase() {
     db.serialize(() => {
-        // Таблица заказов
+        // Таблицы
         db.run(`CREATE TABLE IF NOT EXISTS orders (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -66,8 +66,6 @@ function initDatabase() {
             status TEXT DEFAULT 'new',
             closed_date TEXT
         )`);
-
-        // Таблица участников
         db.run(`CREATE TABLE IF NOT EXISTS participants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -75,37 +73,27 @@ function initDatabase() {
             phone TEXT,
             orders TEXT DEFAULT '[]'
         )`);
-
-        // Таблица архивов
         db.run(`CREATE TABLE IF NOT EXISTS archives (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,
             orders TEXT NOT NULL,
             discount INTEGER DEFAULT 10
         )`);
-
-        // Таблица настроек
         db.run(`CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         )`);
-
-        // Таблица админов
         db.run(`CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL
         )`);
-
-        // Таблица кодов верификации
         db.run(`CREATE TABLE IF NOT EXISTS verification_codes (
             email TEXT PRIMARY KEY,
             code TEXT NOT NULL,
             created_at INTEGER NOT NULL,
             expires_at INTEGER NOT NULL
         )`);
-
-        // === НОВАЯ ТАБЛИЦА ДЛЯ ТОВАРОВ (CRUD) ===
         db.run(`CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -118,8 +106,6 @@ function initDatabase() {
             image TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )`);
-
-        // Индексы для производительности
         db.run(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`);
         db.run(`CREATE INDEX IF NOT EXISTS idx_orders_closed_date ON orders(closed_date)`);
 
@@ -130,7 +116,37 @@ function initDatabase() {
             ('open_date', ?),
             ('sender_email', '')`, [new Date().toISOString()]);
 
+        // Создание админа
         createDefaultAdmin();
+
+        // Заполнение начальными товарами (если таблица пуста)
+        db.get('SELECT COUNT(*) as count FROM products', (err, row) => {
+            if (err) return;
+            if (row.count === 0) {
+                const defaultProducts = [
+                    { id:'p1', name:'Бразилия Серрадо (эспрессо, зерно 1кг)', category:'Кофе', price:2150, unit:'1 кг', weight:1, code:'00-00003319' },
+                    { id:'p2', name:'Гватемала Фуэго (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+                    { id:'p3', name:'Кения Найроби (эспрессо, зерно 1кг)', category:'Кофе', price:2750, unit:'1 кг', weight:1, code:'' },
+                    { id:'p4', name:'Колумбия Богота (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+                    { id:'p5', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 1кг)', category:'Кофе', price:2450, unit:'1 кг', weight:1, code:'00-00008552' },
+                    { id:'p6', name:'Руанда Кигали (эспрессо, зерно 1кг)', category:'Кофе', price:2500, unit:'1 кг', weight:1, code:'' },
+                    { id:'p7', name:'Эфиопия Гуджи (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'00-00008886' },
+                    { id:'p8', name:'Эфиопия Иргачефф (эспрессо, зерно 1кг)', category:'Кофе', price:2300, unit:'1 кг', weight:1, code:'00-00003323' },
+                    { id:'p9', name:'Эфиопия Оромия (эспрессо, зерно 1кг)', category:'Кофе', price:2600, unit:'1 кг', weight:1, code:'' },
+                    { id:'p10', name:'Бразилия Серрадо (эспрессо, зерно 250г)', category:'Кофе', price:560, unit:'250 г', weight:0.25, code:'00-00003386' },
+                    { id:'p11', name:'Колумбия Богота (эспрессо, зерно 250г)', category:'Кофе', price:655, unit:'250 г', weight:0.25, code:'' },
+                    { id:'p12', name:'Коста-Рика Сан-Хосе (эспрессо, зерно 250г)', category:'Кофе', price:640, unit:'250 г', weight:0.25, code:'' },
+                    { id:'p13', name:'Эфиопия Гуджи (эспрессо, зерно 250г)', category:'Кофе', price:680, unit:'250 г', weight:0.25, code:'' },
+                    { id:'p14', name:'Эфиопия Иргачефф (эспрессо, зерно 250г)', category:'Кофе', price:600, unit:'250 г', weight:0.25, code:'00-00003390' },
+                ];
+                const stmt = db.prepare('INSERT INTO products (id, name, category, price, unit, weight, code) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                defaultProducts.forEach(p => {
+                    stmt.run(p.id, p.name, p.category, p.price, p.unit, p.weight, p.code);
+                });
+                stmt.finalize();
+                console.log('✅ Добавлены начальные товары (14 позиций)');
+            }
+        });
     });
 }
 
@@ -143,7 +159,7 @@ async function createDefaultAdmin() {
             (err) => {
                 if (err) console.error('❌ Ошибка создания админа:', err.message);
                 else console.log('✅ Админ создан (пароль: admin2026)');
-                initMailer(); // Настраиваем SMTP после БД
+                initMailer();
                 startServer();
             }
         );
@@ -156,7 +172,6 @@ async function createDefaultAdmin() {
 
 // === ЗАПУСК СЕРВЕРА ===
 let serverStarted = false;
-
 function startServer() {
     if (serverStarted) return;
     serverStarted = true;
@@ -168,7 +183,6 @@ function startServer() {
         process.env.ORIGIN,
         'https://tasty-coffee-production.up.railway.app'
     ].filter(Boolean);
-
     app.use(cors({
         origin: function (origin, callback) {
             if (!origin) return callback(null, true);
@@ -180,7 +194,6 @@ function startServer() {
         },
         credentials: true
     }));
-
     app.set('trust proxy', 1);
     app.use(express.json({ limit: '10mb' }));
     app.use(express.static(path.join(__dirname, 'public')));
@@ -205,7 +218,6 @@ function startServer() {
             });
         });
     }
-
     function setSetting(key, value) {
         return new Promise((resolve, reject) => {
             db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
@@ -217,7 +229,6 @@ function startServer() {
             );
         });
     }
-
     async function getSettings() {
         try {
             const isClosed = await getSetting('is_closed') === 'true';
@@ -230,7 +241,6 @@ function startServer() {
             return { isClosed: false, discount: 10, openDate: new Date().toISOString(), senderEmail: '' };
         }
     }
-
     function isAuthenticated(req, res, next) {
         if (req.session && req.session.isAdmin) {
             next();
@@ -238,6 +248,17 @@ function startServer() {
             res.status(401).json({ error: 'Не авторизован' });
         }
     }
+
+    // === ПУБЛИЧНЫЙ API ТОВАРОВ ===
+    app.get('/api/products', (req, res) => {
+        db.all('SELECT id, name, category, price, unit, weight, code, description FROM products ORDER BY name', (err, products) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ products });
+        });
+    });
 
     // === ВЕРИФИКАЦИЯ ===
     app.post('/api/send-code', async (req, res) => {
@@ -346,7 +367,7 @@ function startServer() {
                 console.error('Ошибка выхода:', err);
                 return res.status(500).json({ error: 'Ошибка выхода' });
             }
-            res.clearCookie('connect.sid'); // очищаем куку
+            res.clearCookie('connect.sid');
             res.json({ success: true });
         });
     });
@@ -395,7 +416,7 @@ function startServer() {
         }
     });
 
-    // === CRUD ТОВАРОВ (только для админа) ===
+    // === CRUD ТОВАРОВ (админ) ===
     app.get('/api/admin/products', isAuthenticated, (req, res) => {
         db.all('SELECT * FROM products ORDER BY name', (err, products) => {
             if (err) return res.status(500).json({ error: err.message });
@@ -440,40 +461,35 @@ function startServer() {
         });
     });
 
-    // === АНАЛИТИКА: БЕСТСЕЛЛЕРЫ ===
+    // === АНАЛИТИКА БЕСТСЕЛЛЕРОВ ===
     app.get('/api/analytics/bestsellers', isAuthenticated, (req, res) => {
-        db.all(
-            `SELECT cart, status FROM orders WHERE status IN ('closed', 'completed')`,
-            (err, orders) => {
-                if (err) return res.status(500).json({ error: err.message });
-
-                const productCount = {};
-                orders.forEach(order => {
-                    try {
-                        const cart = JSON.parse(order.cart || '[]');
-                        cart.forEach(item => {
-                            const id = item.productId;
-                            const qty = item.quantity || 1;
-                            productCount[id] = (productCount[id] || 0) + qty;
-                        });
-                    } catch(e) {}
-                });
-
-                const ids = Object.keys(productCount);
-                if (ids.length === 0) {
-                    return res.json({ bestsellers: [] });
-                }
-                const placeholders = ids.map(() => '?').join(',');
-                db.all(`SELECT id, name, price FROM products WHERE id IN (${placeholders})`, ids, (err, products) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    const result = products.map(p => ({
-                        ...p,
-                        total_quantity: productCount[p.id] || 0
-                    })).sort((a, b) => b.total_quantity - a.total_quantity);
-                    res.json({ bestsellers: result });
-                });
+        db.all(`SELECT cart, status FROM orders WHERE status IN ('closed', 'completed')`, (err, orders) => {
+            if (err) return res.status(500).json({ error: err.message });
+            const productCount = {};
+            orders.forEach(order => {
+                try {
+                    const cart = JSON.parse(order.cart || '[]');
+                    cart.forEach(item => {
+                        const id = item.productId;
+                        const qty = item.quantity || 1;
+                        productCount[id] = (productCount[id] || 0) + qty;
+                    });
+                } catch(e) {}
+            });
+            const ids = Object.keys(productCount);
+            if (ids.length === 0) {
+                return res.json({ bestsellers: [] });
             }
-        );
+            const placeholders = ids.map(() => '?').join(',');
+            db.all(`SELECT id, name, price FROM products WHERE id IN (${placeholders})`, ids, (err, products) => {
+                if (err) return res.status(500).json({ error: err.message });
+                const result = products.map(p => ({
+                    ...p,
+                    total_quantity: productCount[p.id] || 0
+                })).sort((a, b) => b.total_quantity - a.total_quantity);
+                res.json({ bestsellers: result });
+            });
+        });
     });
 
     // === ИНДИВИДУАЛЬНЫЙ СТАТУС ЗАКАЗА ===
@@ -608,8 +624,8 @@ function startServer() {
                     // Отправка письма через Nodemailer
                     if (transporter) {
                         try {
-                            const orderText = generateOrderEmail(name, email, phone, cart, orderId, orderDate);
                             const fromEmail = await getSetting('sender_email') || process.env.SMTP_FROM || process.env.SMTP_USER;
+                            const orderText = generateOrderEmail(name, email, phone, cart, orderId, orderDate);
                             await transporter.sendMail({
                                 from: fromEmail,
                                 to: email,
@@ -649,7 +665,6 @@ function startServer() {
 
     function generateOrderEmail(name, email, phone, cart, orderId, orderDate) {
         const items = cart.map(item => {
-            const product = { name: item.productId, price: 0 }; // заглушка, можно подгрузить из БД
             return `  ${item.quantity} шт. х ${item.productId}`;
         }).join('\n');
         return `=== ПЕРСОНАЛЬНЫЙ СЧЁТ TASTY COFFEE ===\nДата: ${orderDate}\nКлиент: ${name}\nEmail: ${email}\nТелефон: ${phone}\n----------------------------------------\n${items}\n----------------------------------------\nИтого: ${cart.reduce((sum, i) => sum + (i.quantity || 0)*100, 0)} ₽\nВаш ID: ${orderId}`;
