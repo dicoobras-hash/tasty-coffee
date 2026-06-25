@@ -914,7 +914,221 @@
             <button class="btn btn-secondary" id="closeBestsellersModal" style="margin-top:12px;">Закрыть</button>
         </div>
     </div>
+<!-- ЗАКРЫТИЕ ВСЕХ МОДАЛЬНЫХ ОКОН -->
+    </div>
+    
+    <script>
+        // ========================================================= 
+        //  ОСНОВНАЯ ЛОГИКА ФРОНТЕНДА (JAVASCRIPT)
+        // ========================================================= 
+        
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+        let products = [];
+        let cart = JSON.parse(localStorage.getItem('tasty_cart')) || [];
+        let isVerified = false;
 
+        // Элементы DOM
+        const productListEl = document.getElementById('productList');
+        const cartContainerEl = document.getElementById('cartContainer');
+        const itemCountEl = document.getElementById('itemCount');
+        const totalPriceEl = document.getElementById('totalPrice');
+        const subtotalEl = document.getElementById('subtotal');
+        const discountAmountEl = document.getElementById('discountAmount');
+        const totalWeightEl = document.getElementById('totalWeight');
+        
+        // 1. Инициализация и загрузка
+        async function init() {
+            try {
+                const res = await fetch(`${API_URL}/api/products`);
+                const data = await res.json();
+                products = data.products || [];
+                renderProducts(products);
+                renderCart();
+            } catch (err) {
+                console.error("Ошибка загрузки товаров:", err);
+            }
+        }
+
+        // 2. Рендеринг товаров
+        function renderProducts(items) {
+            productListEl.innerHTML = items.map(p => `
+                <div class="product-item" onclick="addToCart('${p.id}')">
+                    <div class="product-name">${p.name} <br>
+                        <span class="product-meta">${p.category} • ${p.weight} кг</span>
+                    </div>
+                    <div class="product-price">${p.price} ₽</div>
+                </div>
+            `).join('');
+            document.getElementById('productCount').textContent = `Всего товаров: ${items.length}`;
+        }
+
+        // 3. Управление корзиной
+        window.addToCart = function(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            
+            const existing = cart.find(i => i.productId === id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ productId: id, name: product.name, price: product.price, weight: product.weight, quantity: 1 });
+            }
+            saveCart();
+            renderCart();
+        }
+
+        function saveCart() {
+            localStorage.setItem('tasty_cart', JSON.stringify(cart));
+        }
+
+        function renderCart() {
+            if (cart.length === 0) {
+                cartContainerEl.innerHTML = '<div class="empty-cart">Корзина пуста</div>';
+                document.getElementById('cartTotals').classList.add('hidden');
+                itemCountEl.textContent = '0';
+                return;
+            }
+
+            document.getElementById('cartTotals').classList.remove('hidden');
+            let total = 0, weight = 0, count = 0;
+
+            cartContainerEl.innerHTML = `
+                <table class="cart-table">
+                    <thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th><th></th></tr></thead>
+                    <tbody>
+                        ${cart.map((item, index) => {
+                            const sum = item.price * item.quantity;
+                            total += sum;
+                            weight += (item.weight || 0) * item.quantity;
+                            count += item.quantity;
+                            return `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>
+                                        <input type="number" class="qty-input" value="${item.quantity}" min="1" onchange="updateQty(${index}, this.value)">
+                                    </td>
+                                    <td>${sum} ₽</td>
+                                    <td><button class="remove-btn" onclick="removeFromCart(${index})">✖</button></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            itemCountEl.textContent = count;
+            subtotalEl.textContent = `${total} ₽`;
+            
+            // Расчет скидки (предположим 10% по умолчанию)
+            const discount = Math.round(total * 0.10);
+            discountAmountEl.textContent = `-${discount} ₽`;
+            totalPriceEl.textContent = `${total - discount} ₽`;
+            totalWeightEl.textContent = `${weight.toFixed(2)} кг`;
+        }
+
+        window.updateQty = function(index, val) {
+            const qty = parseInt(val);
+            if (qty > 0) cart[index].quantity = qty;
+            saveCart();
+            renderCart();
+        }
+
+        window.removeFromCart = function(index) {
+            cart.splice(index, 1);
+            saveCart();
+            renderCart();
+        }
+
+        document.getElementById('clearCartBtn').onclick = () => {
+            cart = [];
+            saveCart();
+            renderCart();
+        };
+
+        // 4. Логика авторизации пользователя (Получение кода)
+        document.getElementById('sendCodeBtn').onclick = async () => {
+            const email = document.getElementById('userEmail').value;
+            const phone = document.getElementById('userPhone').value;
+            if (!email || !phone) return alert('Введите Email и Телефон');
+            
+            await fetch(`${API_URL}/api/send-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, phone })
+            });
+            document.getElementById('codeSection').classList.remove('hidden');
+            document.getElementById('sendCodeBtn').classList.add('hidden');
+        };
+
+        document.getElementById('verifyCodeBtn').onclick = async () => {
+            const email = document.getElementById('userEmail').value;
+            const code = document.getElementById('codeInput').value;
+            
+            const res = await fetch(`${API_URL}/api/verify-code`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                isVerified = true;
+                document.getElementById('verificationBlock').classList.add('hidden');
+                document.getElementById('shoppingArea').classList.remove('hidden');
+                document.getElementById('authStatus').textContent = '✅ Подтвержден';
+                document.getElementById('authStatus').className = 'auth-status verified';
+            } else {
+                alert(data.error);
+            }
+        };
+
+        // 5. Оформление заказа
+        document.getElementById('createOrderBtn').onclick = () => {
+            document.getElementById('consentModal').classList.add('active');
+            document.getElementById('consentCheckbox').onchange = (e) => {
+                document.getElementById('confirmOrderBtn').disabled = !e.target.checked;
+            };
+        };
+
+        document.getElementById('cancelOrderBtn').onclick = () => {
+            document.getElementById('consentModal').classList.remove('active');
+        };
+
+        document.getElementById('confirmOrderBtn').onclick = async () => {
+            const email = document.getElementById('userEmail').value;
+            const phone = document.getElementById('userPhone').value;
+
+            const res = await fetch(`${API_URL}/api/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, phone, cart })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('consentModal').classList.remove('active');
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('newOrderIdDisplay').textContent = data.order.id;
+                cart = [];
+                saveCart();
+                renderCart();
+            } else {
+                alert(data.error || 'Ошибка при оформлении заказа');
+            }
+        };
+
+        // Поиск
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(val) || (p.category && p.category.toLowerCase().includes(val)));
+            renderProducts(filtered);
+        });
+
+        // Старт
+        init();
+    </script>
+</body>
+</html>
     <!-- ========================================================= -->
     <!--  СКРИПТЫ                                                   -->
     <!-- ========================================================= -->
