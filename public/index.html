@@ -8,29 +8,120 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        /* Полные стили из предыдущих версий (я их не повторяю) */
-        /* Добавлены стили для модальных окон, таблиц и кнопок управления товарами */
+        /* ===== СТИЛИ (полные) ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f5f3f0; color: #1e1e1e; padding: 20px; }
+        .container { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; align-items: start; }
+        .card { background: #ffffff; border-radius: 24px; padding: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); border: 1px solid #ece8e4; }
+        h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+        .subtitle { color: #6b6b6b; font-size: 14px; border-bottom: 1px solid #efefef; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .flex-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .flex-row .form-group { flex: 1; min-width: 140px; position: relative; }
+        .form-group { margin-bottom: 14px; }
+        label { font-size: 13px; font-weight: 500; color: #3d3d3d; display: block; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid #d9d9d9; border-radius: 12px; font-size: 14px; background: #fafafa; transition: 0.2s; font-family: inherit; }
+        input:focus { outline: none; border-color: #b9a18c; background: white; box-shadow: 0 0 0 3px rgba(185,161,140,0.2); }
+        .btn { padding: 10px 22px; border: none; border-radius: 40px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+        .btn-primary { background: #1e1e1e; color: white; }
+        .btn-primary:hover { background: #3d3d3d; transform: scale(1.01); }
+        .btn-secondary { background: #f0edea; color: #2d2d2d; }
+        .btn-secondary:hover { background: #e3dfdb; }
+        .btn-success { background: #1f7b4d; color: white; }
+        .btn-success:hover { background: #146a3e; }
+        .btn-danger { background: #c0392b; color: white; }
+        .btn-danger:hover { background: #a93226; }
+        .btn-info { background: #2d7db8; color: white; }
+        .btn-info:hover { background: #1f5f8a; }
+        .btn-warning { background: #e67e22; color: white; }
+        .btn-warning:hover { background: #d35400; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-xs { padding: 3px 10px; font-size: 11px; border-radius: 30px; }
+        .product-selector { background: #f8f7f6; border-radius: 16px; padding: 16px; margin: 16px 0; }
+        .search-box { display: flex; gap: 8px; flex-wrap: wrap; }
+        .search-box input { flex: 1; min-width: 160px; background: white; }
+        .product-grid { max-height: 300px; overflow-y: auto; margin-top: 12px; background: white; border-radius: 12px; border: 1px solid #ece9e6; }
+        .product-item { display: flex; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #f0efed; font-size: 14px; align-items: center; cursor: pointer; transition: 0.1s; }
+        .product-item:hover { background: #f5f3f1; }
+        .product-name { font-weight: 500; flex: 1; font-size: 13px; }
+        .product-meta { color: #6b6b6b; font-size: 12px; margin-right: 16px; white-space: nowrap; }
+        .product-price { font-weight: 600; background: #f0edea; padding: 4px 12px; border-radius: 40px; font-size: 13px; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+        .cart-header h3 { font-size: 18px; }
+        .cart-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .cart-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .cart-table th { text-align: left; padding: 8px 6px 12px; border-bottom: 1px solid #e3dfdb; font-weight: 500; color: #4a4a4a; }
+        .cart-table td { padding: 10px 6px; border-bottom: 1px solid #f0eeeb; vertical-align: middle; }
+        .cart-table .qty-input { width: 60px; padding: 6px 4px; text-align: center; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; }
+        .remove-btn { background: none; border: none; color: #a09b96; font-size: 18px; cursor: pointer; padding: 0 4px; }
+        .remove-btn:hover { color: #c0392b; }
+        .empty-cart { color: #8c8580; text-align: center; padding: 30px 0; font-size: 15px; }
+        .totals-box { margin-top: 18px; padding-top: 16px; border-top: 2px solid #e3dfdb; }
+        .total-line { display: flex; justify-content: space-between; font-size: 20px; font-weight: 700; margin: 10px 0; padding-top: 8px; border-top: 2px solid #d0cac4; }
+        .discount-line { display: flex; justify-content: space-between; font-size: 15px; color: #2d2d2d; padding: 4px 0; }
+        .order-summary { background: #f8f7f6; border-radius: 16px; padding: 16px; margin-top: 14px; font-size: 13px; color: #3d3d3d; max-height: 340px; overflow-y: auto; white-space: pre-wrap; border: 1px solid #ece9e6; font-family: monospace; }
+        .admin-panel { background: #f0f4f8; border-radius: 16px; padding: 16px; margin-top: 18px; border: 1px dashed #b9c4d0; }
+        .participant-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .participant-table th { text-align: left; padding: 8px 6px; background: #e8edf4; border-bottom: 2px solid #cdd7e3; }
+        .participant-table td { padding: 8px 6px; border-bottom: 1px solid #e0e7ef; }
+        .hidden { display: none !important; }
+        .badge { background: #f0edea; padding: 4px 14px; border-radius: 100px; font-size: 13px; font-weight: 500; }
+        .text-muted { color: #6b6b6b; font-size: 13px; }
+        .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        .admin-actions .btn { flex: 1; min-width: 120px; }
+        .success-message { background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 12px; margin-top: 12px; border: 1px solid #c3e6cb; display: none; }
+        .closed-banner { background: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: 12px; margin-top: 12px; border: 1px solid #f5c6cb; display: none; font-weight: 600; }
+        .purchase-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f0f4f8; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid #dce3ed; }
+        .purchase-header .date-item { font-size: 13px; color: #1f3a5f; }
+        .purchase-header .date-item strong { font-weight: 600; }
+        .auth-status { font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+        .auth-status.guest { background: #e8edf4; color: #4a6a8a; }
+        .auth-status.admin { background: #d4edda; color: #155724; }
+        .auth-status.verified { background: #cce5ff; color: #004085; }
+        .db-status { font-size: 11px; color: #6b6b6b; margin-top: 4px; }
+        .smtp-settings { background: #f5f8fa; border-radius: 12px; padding: 12px; margin: 8px 0; border: 1px solid #dce3ed; }
+        .smtp-settings .flex-row { gap: 6px; }
+        .smtp-settings .form-group { margin-bottom: 6px; }
+        .smtp-settings input { padding: 6px 10px; font-size: 12px; }
+        .smtp-status { font-size: 12px; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+        .smtp-status.success { background: #d4edda; color: #155724; }
+        .smtp-status.error { background: #f8d7da; color: #721c24; }
+        .smtp-status.waiting { background: #fff3cd; color: #856404; }
+        .sender-settings { margin: 12px 0; padding: 12px; background: #f8f9fa; border-radius: 12px; border: 1px solid #e0e5ed; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal { background: white; border-radius: 24px; padding: 30px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .modal h2 { margin-bottom: 16px; }
         .modal .btn { margin-top: 8px; }
+        .code-input { display: flex; gap: 8px; align-items: center; }
+        .code-input input { flex: 1; letter-spacing: 4px; font-size: 20px; text-align: center; }
+        .checkbox-group { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; }
+        .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; flex-shrink: 0; }
+        .checkbox-group label { font-size: 14px; line-height: 1.4; color: #333; }
+        .agreement-text { font-size: 13px; line-height: 1.6; color: #444; background: #f8f7f6; padding: 12px 16px; border-radius: 12px; margin: 12px 0; max-height: 150px; overflow-y: auto; border: 1px solid #ece9e6; }
+        .archive-panel { background: #e8f0f8; border-radius: 12px; padding: 12px; margin-top: 12px; border: 1px solid #c5d9e8; max-height: 200px; overflow-y: auto; }
+        .archive-item { font-size: 12px; padding: 4px 8px; border-bottom: 1px solid #dde6ef; display: flex; justify-content: space-between; }
+        .password-setting { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; padding: 10px 14px; background: #eef2f7; border-radius: 12px; border: 1px solid #dce3ed; }
+        .password-setting input { width: 180px; }
+        .discount-setting { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+        .discount-setting input { width: 80px; }
+        .product-count { font-size: 12px; color: #888; }
+        .unsaved-indicator { background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 11px; display: none; margin-left: 8px; border: 1px solid #ffeaa7; }
+        .toggle-password { position: absolute; right: 14px; top: 38px; cursor: pointer; font-size: 18px; user-select: none; }
+        @media (max-width: 880px) { .container { grid-template-columns: 1fr; } }
+        /* Стили для управления товарами */
         .product-item-admin { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #eee; }
         .product-item-admin .btn { margin-left: 8px; padding: 4px 12px; font-size: 12px; }
         .product-form .flex-row { gap: 10px; }
+        .product-form input { margin-bottom: 6px; }
     </style>
 </head>
 <body>
 
-<!-- ====== ОСНОВНАЯ РАЗМЕТКА (как в предыдущей полной версии) ====== -->
-<!-- ... (Вся разметка из предыдущего полного файла, включая верификацию, корзину, админ-панель) ... -->
-<!-- Только изменяю админ-панель, добавляя новые кнопки и модальные окна -->
-
+<!-- ======== ОСНОВНАЯ РАЗМЕТКА ======== -->
 <div class="container">
-    <!-- Левая колонка -->
     <div>
         <div class="card">
-            <!-- Шапка, верификация, корзина — без изменений -->
             <h1>☕ Tasty Coffee</h1>
             <div class="subtitle">
                 <span>Совместный закуп</span>
@@ -39,17 +130,76 @@
                     <span class="db-status" id="dbStatus">📦 БД: SQLite</span>
                 </span>
             </div>
+
+            <!-- Шапка статусов -->
             <div class="purchase-header">
                 <div class="date-item"><strong>📅 Открытие:</strong> <span id="purchaseOpenDate">—</span></div>
                 <div class="date-item"><strong>🔒 Закрытие:</strong> <span id="purchaseCloseDate">—</span></div>
                 <div class="date-item"><strong>📊 Статус:</strong> <span id="purchaseStatus" style="color:#1f7b4d; font-weight:600;">🟢 Открыта</span></div>
             </div>
+
             <div id="closedBanner" class="closed-banner">🔒 ЗАКУПКА ЗАКРЫТА! Заказы заархивированы.</div>
-            <!-- Верификация и корзина — без изменений, они есть в предыдущей версии -->
-            <!-- ... -->
+
+            <!-- Верификация -->
+            <div id="verificationBlock">
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="userEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="text" id="userPhone" placeholder="+7 912 000-00-00">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="sendCodeBtn">📧 Получить код</button>
+                <div id="codeSection" class="hidden" style="margin-top:12px;">
+                    <div class="code-input">
+                        <input type="text" id="codeInput" maxlength="4" placeholder="4-значный код">
+                        <button class="btn btn-success" id="verifyCodeBtn">✅ Подтвердить</button>
+                    </div>
+                    <div style="font-size:12px; color:#888; margin-top:4px;">Введите код из письма</div>
+                </div>
+                <div id="verificationStatus" style="margin-top:8px; font-size:14px;"></div>
+            </div>
+
+            <!-- Корзина и товары -->
+            <div id="shoppingArea" class="hidden" style="margin-top:20px;">
+                <div class="product-selector">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Найти кофе, чай, аксессуар...">
+                        <button class="btn btn-primary" id="addProductBtn">➕ Добавить</button>
+                    </div>
+                    <div class="product-grid" id="productList"></div>
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#888; margin-top:8px;">
+                        <span id="discountHint">Клик по товару → +1 шт. (скидка 10%)</span>
+                        <span class="product-count" id="productCount">Всего товаров: 0</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 6px;">
+                    <div class="cart-header">
+                        <h3>🛒 Ваша корзина <span id="unsavedIndicator" class="unsaved-indicator">⚠️ Не сохранено</span></h3>
+                        <div class="cart-actions">
+                            <span class="badge" id="itemCount">0</span>
+                            <button class="btn btn-danger btn-sm" id="clearCartBtn" title="Очистить корзину">🗑️ Очистить</button>
+                        </div>
+                    </div>
+                    <div id="cartContainer"><div class="empty-cart">Корзина пуста</div></div>
+                    <div id="cartTotals" class="hidden">
+                        <div class="discount-line"><span>Вес заказа</span><span id="totalWeight">0 кг</span></div>
+                        <div class="discount-line"><span>Скидка</span><span id="discountPercent">0%</span></div>
+                        <div class="discount-line"><span>Без скидки</span><span id="subtotal">0 ₽</span></div>
+                        <div class="discount-line" style="color:#1f7b4d;"><span>Экономия</span><span id="discountAmount">-0 ₽</span></div>
+                        <div class="total-line"><span>Итого</span><span id="totalPrice">0 ₽</span></div>
+                    </div>
+                    <button class="btn btn-primary" id="createOrderBtn" style="width:100%; margin-top:12px;">📄 Оформить заказ</button>
+                    <div id="successMessage" class="success-message">✅ Заказ создан! Ваш ID: <span id="newOrderIdDisplay"></span>. Сохраните его для редактирования.</div>
+                </div>
+            </div>
         </div>
 
-        <!-- АДМИН-ПАНЕЛЬ с новыми кнопками -->
+        <!-- АДМИН-ПАНЕЛЬ -->
         <div class="card admin-panel" style="margin-top:20px;">
             <h3>🔐 Администратор</h3>
             <div class="flex-row">
@@ -78,7 +228,7 @@
                     <button class="btn btn-secondary" id="applyDiscountBtn">Применить</button>
                 </div>
 
-                <!-- НОВЫЕ КНОПКИ: Управление товарами и Бестселлеры -->
+                <!-- Новые кнопки управления -->
                 <div style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;">
                     <button class="btn btn-info" id="manageProductsBtn">📦 Управление товарами</button>
                     <button class="btn btn-warning" id="showBestsellersBtn">🏆 Бестселлеры</button>
@@ -163,7 +313,7 @@
         </div>
     </div>
 
-    <!-- Правая колонка: персональный счёт -->
+    <!-- ПРАВАЯ КОЛОНКА: СЧЁТ -->
     <div class="card">
         <h2 style="font-size:20px; margin-bottom:4px;">📄 Ваш персональный счёт</h2>
         <div style="font-size:13px; color:#6b6b6b; margin-bottom:14px;">Счёт можно скопировать или отправить на email</div>
@@ -172,7 +322,7 @@
     </div>
 </div>
 
-<!-- ====== МОДАЛЬНОЕ ОКНО ТОВАРОВ ====== -->
+<!-- МОДАЛЬНОЕ ОКНО ТОВАРОВ -->
 <div id="productsModal" class="modal-overlay">
     <div class="modal">
         <h2>📦 Управление товарами</h2>
@@ -199,7 +349,7 @@
     </div>
 </div>
 
-<!-- ====== МОДАЛЬНОЕ ОКНО БЕСТСЕЛЛЕРОВ ====== -->
+<!-- МОДАЛЬНОЕ ОКНО БЕСТСЕЛЛЕРОВ -->
 <div id="bestsellersModal" class="modal-overlay">
     <div class="modal">
         <h2>🏆 Бестселлеры</h2>
@@ -208,11 +358,15 @@
     </div>
 </div>
 
-<!-- ====== МОДАЛЬНОЕ ОКНО СОГЛАСИЯ ====== -->
+<!-- МОДАЛЬНОЕ ОКНО СОГЛАСИЯ -->
 <div id="consentModal" class="modal-overlay">
     <div class="modal">
         <h2>📋 Подтверждение заказа</h2>
-        <div class="agreement-text">...</div>
+        <div class="agreement-text">
+            <strong>Подтверждая оформление заказа / оплачивая заказ, вы подтверждаете, что даете свое согласие на обработку ваших персональных данных в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».</strong>
+            <br><br>
+            Ваши данные (email и телефон) используются только для обработки заказа и связи с вами. Мы не передаём их третьим лицам. Вы можете отозвать согласие в любой момент, написав нам.
+        </div>
         <div class="checkbox-group">
             <input type="checkbox" id="consentCheckbox">
             <label for="consentCheckbox">Я ознакомлен(а) и согласен(на) с <strong>политикой конфиденциальности</strong> и даю согласие на обработку персональных данных.</label>
@@ -226,15 +380,10 @@
 
 <script>
 // ================================================================
-// ПОЛНЫЙ JAVASCRIPT (с новыми функциями)
+// 1. БАЗОВЫЕ ПЕРЕМЕННЫЕ
 // ================================================================
-
 const API_BASE = window.location.origin;
-// (Массив products теперь не используется для загрузки из БД; но для обратной совместимости оставляем статический список)
-// При инициализации будем загружать товары из БД через админ-API
 let products = [];
-
-// ====== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ======
 let myCart = [];
 let allOrders = [];
 let participantsDB = [];
@@ -246,7 +395,9 @@ let isVerified = false;
 let editMode = false;
 let editOrderId = null;
 
-// ====== API ВЫЗОВЫ ======
+// ================================================================
+// 2. API ВЫЗОВЫ
+// ================================================================
 async function apiCall(endpoint, method = 'GET', body = null) {
     const options = { method, credentials: 'include', headers: { 'Content-Type': 'application/json' } };
     if (body) options.body = JSON.stringify(body);
@@ -256,24 +407,9 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     return data;
 }
 
-// ====== ЗАГРУЗКА ТОВАРОВ ИЗ БД ======
-async function loadProductsFromDB() {
-    try {
-        const data = await apiCall('/api/admin/products');
-        products = data.products || [];
-        // Обновляем отображение товаров в каталоге
-        renderProductList(document.getElementById('searchInput').value);
-        // Обновляем список в модалке управления товарами
-        renderProductsAdminList();
-        return products;
-    } catch (e) {
-        console.warn('Не удалось загрузить товары (возможно, не авторизован):', e);
-        return [];
-    }
-}
-
-// ====== ФУНКЦИИ КОРЗИНЫ И ТОВАРОВ (аналогичны предыдущим) ======
-// (оставляем их без изменений, но заменим getProduct на поиск по products из БД)
+// ================================================================
+// 3. ФУНКЦИИ ТОВАРОВ И КОРЗИНЫ
+// ================================================================
 function getProduct(id) {
     return products.find(p => p.id === id);
 }
@@ -321,159 +457,250 @@ function renderProductList(filter = '') {
     container.querySelectorAll('.product-item').forEach(el => {
         el.addEventListener('click', function() { addToCart(this.dataset.id, 1); });
     });
+    document.getElementById('productCount').textContent = `Всего товаров: ${products.length}`;
 }
 
-function updateCartUI() { /* ... (как в предыдущей версии) ... */ }
-function addToCart(productId, qty = 1) { /* ... */ }
-function removeFromCart(productId) { /* ... */ }
-function updateQuantity(productId, newQty) { /* ... */ }
-function generatePersonalOrderText(name, email, phone, cart) { /* ... */ }
-function updatePersonalSummary() { /* ... */ }
-// (Все эти функции остаются без изменений, я их не дублирую для краткости — они такие же, как в предыдущей полной версии)
+function updateCartUI() {
+    const items = getCartItems();
+    const totals = calcTotals();
+    const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
+    document.getElementById('itemCount').textContent = totalItems;
 
-// ====== АДМИН-ПАНЕЛЬ: НОВЫЕ ФУНКЦИИ ======
-
-// Управление товарами
-async function renderProductsAdminList() {
-    try {
-        const data = await apiCall('/api/admin/products');
-        const products = data.products || [];
-        const container = document.getElementById('productsListContainer');
-        if (!container) return;
-        if (products.length === 0) {
-            container.innerHTML = '<p>Товаров пока нет.</p>';
-            return;
-        }
-        let html = '<table class="participant-table"><thead><tr><th>Название</th><th>Цена</th><th>Категория</th><th>Действия</th></tr></thead><tbody>';
-        products.forEach(p => {
-            html += `<tr>
-                <td>${p.name}</td>
-                <td>${p.price} ₽</td>
-                <td>${p.category || ''}</td>
-                <td>
-                    <button class="btn btn-secondary btn-sm edit-product" data-id="${p.id}">✏️</button>
-                    <button class="btn btn-danger btn-sm delete-product" data-id="${p.id}">🗑️</button>
-                </td>
-            </tr>`;
-        });
-        html += '</tbody></table>';
-        container.innerHTML = html;
-
-        // Обработчики для редактирования (можно открыть форму с заполнением)
-        container.querySelectorAll('.edit-product').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const product = products.find(p => p.id === id);
-                if (product) {
-                    document.getElementById('prodName').value = product.name;
-                    document.getElementById('prodPrice').value = product.price;
-                    document.getElementById('prodCategory').value = product.category || '';
-                    document.getElementById('prodUnit').value = product.unit || '';
-                    document.getElementById('prodWeight').value = product.weight || '';
-                    document.getElementById('prodCode').value = product.code || '';
-                    document.getElementById('prodDescription').value = product.description || '';
-                    // Изменяем кнопку на "Обновить"
-                    const form = document.getElementById('productForm');
-                    form.dataset.editId = id;
-                    form.querySelector('button[type="submit"]').textContent = 'Обновить';
-                }
-            });
-        });
-        container.querySelectorAll('.delete-product').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const id = this.dataset.id;
-                if (!confirm('Удалить товар?')) return;
-                try {
-                    await apiCall(`/api/admin/products/${id}`, 'DELETE');
-                    alert('✅ Товар удалён');
-                    loadProductsFromDB();
-                } catch (e) {
-                    alert('❌ Ошибка: ' + e.message);
-                }
-            });
-        });
-    } catch (e) {
-        console.error('Ошибка загрузки товаров:', e);
-    }
-}
-
-// Форма добавления/обновления товара
-document.getElementById('productForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const name = document.getElementById('prodName').value.trim();
-    const price = parseFloat(document.getElementById('prodPrice').value);
-    if (!name || isNaN(price)) {
-        alert('Заполните название и цену');
+    if (items.length === 0) {
+        document.getElementById('cartContainer').innerHTML = `<div class="empty-cart">Корзина пуста</div>`;
+        document.getElementById('cartTotals').classList.add('hidden');
+        document.getElementById('unsavedIndicator').classList.add('hidden');
         return;
     }
-    const data = {
-        name,
-        price,
-        category: document.getElementById('prodCategory').value.trim(),
-        unit: document.getElementById('prodUnit').value.trim(),
-        weight: parseFloat(document.getElementById('prodWeight').value) || 0,
-        code: document.getElementById('prodCode').value.trim(),
-        description: document.getElementById('prodDescription').value.trim()
-    };
-    const editId = this.dataset.editId;
+
+    let html = `<table class="cart-table"><thead><tr><th>Товар</th><th>Кол-во</th><th>Цена (шт)</th><th>Сумма</th><th></th></tr></thead><tbody>`;
+    items.forEach(({ product, quantity }) => {
+        const price = getPriceWithDiscount(product);
+        html += `<tr>
+            <td style="font-size:13px;">${product.name}</td>
+            <td><input class="qty-input" type="number" min="1" value="${quantity}" data-id="${product.id}"></td>
+            <td>${price.toFixed(0)} ₽</td>
+            <td>${(price * quantity).toFixed(0)} ₽</td>
+            <td><button class="remove-btn" data-id="${product.id}">✕</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('cartContainer').innerHTML = html;
+
+    document.querySelectorAll('.qty-input').forEach(inp => {
+        inp.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            if (!isNaN(val) && val > 0) updateQuantity(this.dataset.id, val);
+        });
+    });
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() { removeFromCart(this.dataset.id); });
+    });
+
+    document.getElementById('cartTotals').classList.remove('hidden');
+    document.getElementById('totalWeight').textContent = totals.totalWeight.toFixed(2) + ' кг';
+    document.getElementById('discountPercent').textContent = globalDiscountPercent + '%';
+    document.getElementById('subtotal').textContent = totals.subtotal.toFixed(0) + ' ₽';
+    document.getElementById('discountAmount').textContent = '-' + totals.discountAmount.toFixed(0) + ' ₽';
+    document.getElementById('totalPrice').textContent = totals.total.toFixed(0) + ' ₽';
+    document.getElementById('unsavedIndicator').classList.remove('hidden');
+}
+
+function addToCart(productId, qty = 1) {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    const existing = myCart.find(item => item.productId === productId);
+    if (existing) existing.quantity += qty;
+    else myCart.push({ productId, quantity: qty });
+    updateCartUI();
+    updatePersonalSummary();
+}
+function removeFromCart(productId) {
+    if (isClosed) return;
+    myCart = myCart.filter(item => item.productId !== productId);
+    updateCartUI();
+    updatePersonalSummary();
+}
+function updateQuantity(productId, newQty) {
+    if (isClosed) return;
+    const item = myCart.find(i => i.productId === productId);
+    if (!item) return;
+    if (newQty <= 0) removeFromCart(productId);
+    else { item.quantity = newQty; updateCartUI(); updatePersonalSummary(); }
+}
+function generatePersonalOrderText(name, email, phone, cart) {
+    const items = getCartItems(cart || myCart);
+    const totals = calcTotals(cart || myCart);
+    if (items.length === 0) return null;
+    let lines = [];
+    lines.push(`=== ПЕРСОНАЛЬНЫЙ СЧЁТ TASTY COFFEE ===`);
+    lines.push(`Дата: ${new Date().toLocaleDateString('ru-RU')}`);
+    lines.push(`Клиент: ${name || 'Клиент'}`);
+    lines.push(`Email: ${email}`);
+    lines.push(`Телефон: ${phone}`);
+    lines.push(`Скидка: ${globalDiscountPercent}%`);
+    lines.push(`----------------------------------------`);
+    items.forEach(({ product, quantity }) => {
+        const price = getPriceWithDiscount(product);
+        lines.push(`${product.name}\n  ${quantity} шт. х ${price.toFixed(0)} ₽ = ${(price * quantity).toFixed(0)} ₽`);
+    });
+    lines.push(`----------------------------------------`);
+    lines.push(`Общий вес: ${totals.totalWeight.toFixed(2)} кг`);
+    lines.push(`Сумма без скидки: ${totals.subtotal.toFixed(0)} ₽`);
+    lines.push(`Экономия: ${totals.discountAmount.toFixed(0)} ₽`);
+    lines.push(`ИТОГО: ${totals.total.toFixed(0)} ₽`);
+    return lines.join('\n');
+}
+function updatePersonalSummary() {
+    const text = generatePersonalOrderText(
+        document.getElementById('userPhone').value.trim() || 'Клиент',
+        document.getElementById('userEmail').value.trim(),
+        document.getElementById('userPhone').value.trim()
+    );
+    document.getElementById('personalOrderSummary').textContent = text || '❗ Корзина пуста.';
+}
+
+// ================================================================
+// 4. АУТЕНТИФИКАЦИЯ И АДМИН-ПАНЕЛЬ
+// ================================================================
+async function checkAuthStatus() {
     try {
-        if (editId) {
-            await apiCall(`/api/admin/products/${editId}`, 'PUT', data);
-            alert('✅ Товар обновлён');
-            delete this.dataset.editId;
-            this.querySelector('button[type="submit"]').textContent = 'Добавить';
-            this.reset();
-        } else {
-            await apiCall('/api/admin/products', 'POST', data);
-            alert('✅ Товар добавлен');
-            this.reset();
-        }
-        loadProductsFromDB();
+        const data = await apiCall('/api/auth/status');
+        isAuthenticated = data.isAuthenticated;
+        isClosed = data.isClosed || false;
+        globalDiscountPercent = data.discount || 10;
+        if (data.openDate) document.getElementById('purchaseOpenDate').textContent = new Date(data.openDate).toLocaleString('ru-RU');
+        if (data.senderEmail) document.getElementById('senderEmailInput').value = data.senderEmail;
+        updateAuthUI();
+        updateStatusUI();
+        updateDiscountUI();
+        return data;
     } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
+        return { isAuthenticated: false };
     }
-});
-
-// Модальное окно товаров
-document.getElementById('manageProductsBtn').addEventListener('click', function() {
-    document.getElementById('productsModal').classList.add('active');
-    // Сброс формы
-    const form = document.getElementById('productForm');
-    delete form.dataset.editId;
-    form.querySelector('button[type="submit"]').textContent = 'Добавить';
-    form.reset();
-    renderProductsAdminList();
-});
-document.getElementById('closeProductsModal').addEventListener('click', function() {
-    document.getElementById('productsModal').classList.remove('active');
-});
-
-// Бестселлеры
-document.getElementById('showBestsellersBtn').addEventListener('click', async function() {
+}
+async function login(password) {
     try {
-        const data = await apiCall('/api/analytics/bestsellers');
-        const list = document.getElementById('bestsellersList');
-        if (!data.bestsellers || data.bestsellers.length === 0) {
-            list.innerHTML = '<p>Нет данных о продажах.</p>';
-        } else {
-            let html = '<table class="participant-table"><thead><tr><th>Товар</th><th>Кол-во продаж</th><th>Цена</th></tr></thead><tbody>';
-            data.bestsellers.forEach(p => {
-                html += `<tr><td>${p.name}</td><td>${p.total_quantity}</td><td>${p.price} ₽</td></tr>`;
-            });
-            html += '</tbody></table>';
-            list.innerHTML = html;
+        const data = await apiCall('/api/auth/login', 'POST', { password });
+        if (data.success) {
+            isAuthenticated = true;
+            if (data.senderEmail) document.getElementById('senderEmailInput').value = data.senderEmail;
+            updateAuthUI();
+            await loadOrdersData();
+            // Загружаем товары из БД для админа
+            await loadProductsFromDB();
+            return true;
         }
-        document.getElementById('bestsellersModal').classList.add('active');
+        return false;
     } catch (e) {
-        alert('❌ Ошибка загрузки бестселлеров: ' + e.message);
+        document.getElementById('adminLoginStatus').textContent = '❌ ' + e.message;
+        return false;
     }
-});
-document.getElementById('closeBestsellersModal').addEventListener('click', function() {
-    document.getElementById('bestsellersModal').classList.remove('active');
-});
-
-// ====== АДМИН-ПАНЕЛЬ: СТАТУСЫ ЗАКАЗОВ ======
-// В renderParticipantTable добавляем выпадающий список статусов
+}
+async function logout() {
+    try {
+        await apiCall('/api/auth/logout', 'POST');
+        isAuthenticated = false;
+        allOrders = [];
+        participantsDB = [];
+        archiveData = [];
+        products = [];
+        updateAuthUI();
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('changePasswordBlock').classList.add('hidden');
+        renderParticipantTable();
+        renderArchive();
+        renderProductList('');
+    } catch (e) {
+        console.error('Ошибка выхода:', e);
+    }
+}
+function updateAuthUI() {
+    const authStatus = document.getElementById('authStatus');
+    if (isAuthenticated) {
+        authStatus.textContent = '👑 Администратор';
+        authStatus.className = 'auth-status admin';
+        document.getElementById('adminPanel').classList.remove('hidden');
+        document.getElementById('changePasswordBlock').classList.remove('hidden');
+        document.getElementById('adminLoginStatus').textContent = '✅ Вы авторизованы';
+        document.getElementById('adminLoginStatus').style.color = '#1f7b4d';
+        document.getElementById('adminPassword').value = '';
+    } else {
+        authStatus.textContent = '👤 Гость';
+        authStatus.className = 'auth-status guest';
+        document.getElementById('adminPanel').classList.add('hidden');
+        document.getElementById('changePasswordBlock').classList.add('hidden');
+    }
+}
+function updateStatusUI() {
+    const statusEl = document.getElementById('purchaseStatus');
+    const closedBanner = document.getElementById('closedBanner');
+    const createBtn = document.getElementById('createOrderBtn');
+    const addBtn = document.getElementById('addProductBtn');
+    const clearBtn = document.getElementById('clearCartBtn');
+    if (isClosed) {
+        statusEl.textContent = '🔴 Закрыта';
+        statusEl.style.color = '#c0392b';
+        closedBanner.style.display = 'block';
+        createBtn.disabled = true;
+        addBtn.disabled = true;
+        clearBtn.disabled = true;
+        createBtn.textContent = '🔒 Закупка закрыта';
+    } else {
+        statusEl.textContent = '🟢 Открыта';
+        statusEl.style.color = '#1f7b4d';
+        closedBanner.style.display = 'none';
+        createBtn.disabled = false;
+        addBtn.disabled = false;
+        clearBtn.disabled = false;
+        createBtn.textContent = '📄 Оформить заказ';
+    }
+}
+function updateDiscountUI() {
+    document.getElementById('discountPercent').textContent = globalDiscountPercent + '%';
+    document.getElementById('discountHint').textContent = `Клик по товару → +1 шт. (скидка ${globalDiscountPercent}%)`;
+    document.getElementById('globalDiscount').value = globalDiscountPercent;
+    updateCartUI();
+}
+async function loadOrdersData() {
+    try {
+        const data = await apiCall('/api/orders');
+        allOrders = data.orders || [];
+        participantsDB = data.participants || [];
+        isClosed = data.isClosed || false;
+        globalDiscountPercent = data.discount || 10;
+        archiveData = data.archive || [];
+        renderParticipantTable();
+        renderArchive();
+        updateStatusUI();
+        updateDiscountUI();
+    } catch (e) {
+        if (e.message === 'Не авторизован') {
+            console.log('ℹ️ Заказы доступны только после входа в админ-панель');
+            return;
+        }
+        console.error('Ошибка загрузки заказов:', e);
+    }
+}
+async function loadProductsFromDB() {
+    try {
+        const data = await apiCall('/api/admin/products');
+        products = data.products || [];
+        renderProductList(document.getElementById('searchInput').value);
+        renderProductsAdminList();
+        return products;
+    } catch (e) {
+        console.warn('Не удалось загрузить товары (возможно, не авторизован):', e);
+        return [];
+    }
+}
+async function loadSenderEmail() {
+    try {
+        const data = await apiCall('/api/admin/sender-email');
+        document.getElementById('senderEmailInput').value = data.email || '';
+        document.getElementById('senderEmailStatus').textContent = '✅ Загружено';
+        document.getElementById('senderEmailStatus').style.color = '#1f7b4d';
+    } catch (e) {}
+}
 function renderParticipantTable() {
     if (allOrders.length === 0) {
         document.getElementById('participantTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#888;">Нет заказов</td></tr>`;
@@ -519,90 +746,182 @@ function renderParticipantTable() {
         sel.dataset.old = sel.value;
     });
 }
-
-// ====== ИСПРАВЛЕННЫЙ ВЫХОД ======
-async function logout() {
-    try {
-        await apiCall('/api/auth/logout', 'POST');
-        isAuthenticated = false;
-        allOrders = [];
-        participantsDB = [];
-        archiveData = [];
-        updateAuthUI();
-        document.getElementById('adminPanel').classList.add('hidden');
-        document.getElementById('changePasswordBlock').classList.add('hidden');
-        renderParticipantTable();
-        renderArchive();
-        // Очищаем список товаров (загрузим только при следующем входе)
-        products = [];
-        renderProductList('');
-    } catch (e) {
-        console.error('Ошибка выхода:', e);
+function renderArchive() {
+    if (!archiveData || archiveData.length === 0) {
+        document.getElementById('archiveContent').innerHTML = '<div style="color:#888; font-size:13px;">Архив пуст</div>';
+        document.getElementById('archivePanel').classList.add('hidden');
+        return;
     }
+    document.getElementById('archivePanel').classList.remove('hidden');
+    let html = '';
+    archiveData.forEach((archive, idx) => {
+        html += `<div class="archive-item">
+            <span>📦 Архив #${idx + 1} — ${archive.date}</span>
+            <span>${archive.orders ? archive.orders.length : 0} заказов</span>
+        </div>`;
+    });
+    document.getElementById('archiveContent').innerHTML = html;
 }
 
-// ====== ОСТАЛЬНЫЕ ФУНКЦИИ (загрузка данных, аутентификация, верификация и т.д.) ======
-// (Они остаются без изменений, но нужно убедиться, что loadOrdersData и updateAuthUI корректно работают)
-
-async function loadOrdersData() {
+// ================================================================
+// 5. ВЕРИФИКАЦИЯ
+// ================================================================
+document.getElementById('sendCodeBtn').addEventListener('click', async function() {
+    const email = document.getElementById('userEmail').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    if (!email || !phone) {
+        document.getElementById('verificationStatus').textContent = '⚠️ Заполните email и телефон';
+        document.getElementById('verificationStatus').style.color = '#856404';
+        return;
+    }
+    if (!email.includes('@')) {
+        document.getElementById('verificationStatus').textContent = '⚠️ Введите корректный email';
+        document.getElementById('verificationStatus').style.color = '#856404';
+        return;
+    }
+    document.getElementById('verificationStatus').textContent = '⏳ Отправка кода...';
+    document.getElementById('verificationStatus').style.color = '#856404';
     try {
-        const data = await apiCall('/api/orders');
-        allOrders = data.orders || [];
-        participantsDB = data.participants || [];
-        isClosed = data.isClosed || false;
-        globalDiscountPercent = data.discount || 10;
-        archiveData = data.archive || [];
-        renderParticipantTable();
-        renderArchive();
-        updateStatusUI();
-        updateDiscountUI();
+        const data = await apiCall('/api/send-code', 'POST', { email, phone });
+        document.getElementById('codeSection').classList.remove('hidden');
+        document.getElementById('verificationStatus').textContent = '✅ Код отправлен на email. Проверьте почту.';
+        document.getElementById('verificationStatus').style.color = '#1f7b4d';
+        console.log('Код:', data.code);
     } catch (e) {
-        if (e.message === 'Не авторизован') {
-            console.log('ℹ️ Заказы доступны только после входа в админ-панель');
-            return;
+        document.getElementById('verificationStatus').textContent = '❌ Ошибка: ' + e.message;
+        document.getElementById('verificationStatus').style.color = '#c0392b';
+    }
+});
+document.getElementById('verifyCodeBtn').addEventListener('click', async function() {
+    const email = document.getElementById('userEmail').value.trim();
+    const code = document.getElementById('codeInput').value.trim();
+    if (!email || !code) {
+        document.getElementById('verificationStatus').textContent = '⚠️ Введите код из письма';
+        document.getElementById('verificationStatus').style.color = '#856404';
+        return;
+    }
+    document.getElementById('verificationStatus').textContent = '⏳ Проверка...';
+    document.getElementById('verificationStatus').style.color = '#856404';
+    try {
+        const data = await apiCall('/api/verify-code', 'POST', { email, code });
+        if (data.success) {
+            isVerified = true;
+            document.getElementById('verificationStatus').textContent = '✅ Верификация успешна!';
+            document.getElementById('verificationStatus').style.color = '#1f7b4d';
+            document.getElementById('authStatus').textContent = '✅ Верифицирован';
+            document.getElementById('authStatus').className = 'auth-status verified';
+            document.getElementById('shoppingArea').classList.remove('hidden');
+            document.getElementById('verificationBlock').classList.add('hidden');
+            renderProductList();
+            updateCartUI();
+            updatePersonalSummary();
         }
-        console.error('Ошибка загрузки заказов:', e);
-    }
-}
-
-function updateAuthUI() {
-    const authStatus = document.getElementById('authStatus');
-    if (isAuthenticated) {
-        authStatus.textContent = '👑 Администратор';
-        authStatus.className = 'auth-status admin';
-        document.getElementById('adminPanel').classList.remove('hidden');
-        document.getElementById('changePasswordBlock').classList.remove('hidden');
-        document.getElementById('adminLoginStatus').textContent = '✅ Вы авторизованы';
-        document.getElementById('adminLoginStatus').style.color = '#1f7b4d';
-        document.getElementById('adminPassword').value = '';
-        // Загружаем товары из БД
-        loadProductsFromDB();
-    } else {
-        authStatus.textContent = '👤 Гость';
-        authStatus.className = 'auth-status guest';
-        document.getElementById('adminPanel').classList.add('hidden');
-        document.getElementById('changePasswordBlock').classList.add('hidden');
-    }
-}
-
-async function checkAuthStatus() {
-    try {
-        const data = await apiCall('/api/auth/status');
-        isAuthenticated = data.isAuthenticated;
-        isClosed = data.isClosed || false;
-        globalDiscountPercent = data.discount || 10;
-        if (data.openDate) document.getElementById('purchaseOpenDate').textContent = new Date(data.openDate).toLocaleString('ru-RU');
-        if (data.senderEmail) document.getElementById('senderEmailInput').value = data.senderEmail;
-        updateAuthUI();
-        updateStatusUI();
-        updateDiscountUI();
-        return data;
     } catch (e) {
-        return { isAuthenticated: false };
+        document.getElementById('verificationStatus').textContent = '❌ ' + e.message;
+        document.getElementById('verificationStatus').style.color = '#c0392b';
     }
-}
+});
 
-// ====== ОБРАБОТЧИК ВХОДА (без изменений) ======
+// ================================================================
+// 6. ПОКАЗ/СКРЫТИЕ ПАРОЛЯ И ВХОД ПО ENTER
+// ================================================================
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('adminPassword');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        this.textContent = '🙈';
+    } else {
+        passwordInput.type = 'password';
+        this.textContent = '👁️';
+    }
+});
+document.getElementById('adminPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('adminLoginBtn').click();
+    }
+});
+document.getElementById('codeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('verifyCodeBtn').click();
+    }
+});
+document.getElementById('userEmail').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('sendCodeBtn').click();
+    }
+});
+document.getElementById('userPhone').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        document.getElementById('sendCodeBtn').click();
+    }
+});
+
+// ================================================================
+// 7. ОБРАБОТЧИКИ ИНТЕРФЕЙСА (поиск, добавление, очистка)
+// ================================================================
+document.getElementById('searchInput').addEventListener('input', function() { renderProductList(this.value); });
+document.getElementById('addProductBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    const filter = document.getElementById('searchInput').value.trim().toLowerCase();
+    const found = products.find(p => p.name.toLowerCase().includes(filter) || (p.code && p.code.includes(filter)));
+    if (found) { addToCart(found.id, 1); document.getElementById('searchInput').value = ''; renderProductList(); }
+    else alert('Товар не найден.');
+});
+document.getElementById('clearCartBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    if (myCart.length === 0) { alert('Корзина уже пуста.'); return; }
+    if (confirm('🗑️ Очистить корзину?')) {
+        myCart = [];
+        updateCartUI();
+        updatePersonalSummary();
+        document.getElementById('successMessage').style.display = 'none';
+    }
+});
+
+// ================================================================
+// 8. СОЗДАНИЕ ЗАКАЗА С МОДАЛЬНЫМ ОКНОМ
+// ================================================================
+document.getElementById('createOrderBtn').addEventListener('click', function() {
+    if (isClosed) { alert('🔒 Закупка закрыта!'); return; }
+    if (myCart.length === 0) { alert('⚠️ Корзина пуста.'); return; }
+    if (!isVerified) {
+        alert('⚠️ Требуется верификация. Запросите код и подтвердите его.');
+        return;
+    }
+    document.getElementById('consentModal').classList.add('active');
+    document.getElementById('consentCheckbox').checked = false;
+    document.getElementById('confirmOrderBtn').disabled = true;
+});
+document.getElementById('consentCheckbox').addEventListener('change', function() {
+    document.getElementById('confirmOrderBtn').disabled = !this.checked;
+});
+document.getElementById('cancelOrderBtn').addEventListener('click', function() {
+    document.getElementById('consentModal').classList.remove('active');
+});
+document.getElementById('confirmOrderBtn').addEventListener('click', async function() {
+    document.getElementById('consentModal').classList.remove('active');
+    const email = document.getElementById('userEmail').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    const cart = JSON.parse(JSON.stringify(myCart));
+    try {
+        const data = await apiCall('/api/orders', 'POST', { email, phone, cart });
+        if (data.success) {
+            document.getElementById('newOrderIdDisplay').textContent = data.order.id;
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 10000);
+            myCart = [];
+            updateCartUI();
+            updatePersonalSummary();
+            if (isAuthenticated) await loadOrdersData();
+        }
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+
+// ================================================================
+// 9. АДМИНИСТРАТОР: ВХОД, ВЫХОД, СМЕНА ПАРОЛЯ
+// ================================================================
 document.getElementById('adminLoginBtn').addEventListener('click', async function() {
     const password = document.getElementById('adminPassword').value.trim();
     if (!password) {
@@ -622,70 +941,280 @@ document.getElementById('adminLoginBtn').addEventListener('click', async functio
         document.getElementById('adminLoginStatus').style.color = '#c0392b';
     }
 });
-
-async function login(password) {
-    try {
-        const data = await apiCall('/api/auth/login', 'POST', { password });
-        if (data.success) {
-            isAuthenticated = true;
-            if (data.senderEmail) document.getElementById('senderEmailInput').value = data.senderEmail;
-            updateAuthUI();
-            await loadOrdersData();
-            return true;
+document.getElementById('logoutBtn').addEventListener('click', async function() {
+    if (confirm('Выйти из аккаунта администратора?')) {
+        await logout();
+    }
+});
+document.getElementById('changePasswordBtn').addEventListener('click', async function() {
+    const newPass = document.getElementById('newPasswordInput').value.trim();
+    if (newPass.length < 4) { alert('⚠️ Пароль должен содержать минимум 4 символа.'); return; }
+    if (confirm(`Установить новый пароль?`)) {
+        try {
+            await apiCall('/api/auth/change-password', 'POST', { newPassword: newPass });
+            alert('✅ Пароль успешно изменён!');
+            document.getElementById('newPasswordInput').value = '';
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
         }
-        return false;
-    } catch (e) {
-        document.getElementById('adminLoginStatus').textContent = '❌ ' + e.message;
-        return false;
     }
-}
+});
 
-// ====== ИНИЦИАЛИЗАЦИЯ ======
-async function initializeApp() {
-    console.log('🚀 Инициализация приложения...');
-    document.getElementById('productCount').textContent = `Всего товаров: ${products.length}`;
-    renderProductList();
-    updateCartUI();
-    updatePersonalSummary();
-    await checkAuthStatus();
-    if (isAuthenticated) {
-        await loadOrdersData();
-        await loadSenderEmail();
-    }
-    loadEmailJSSettings();
-    if (sessionStorage.getItem('verified') === 'true') {
-        isVerified = true;
-        document.getElementById('authStatus').textContent = '✅ Верифицирован';
-        document.getElementById('authStatus').className = 'auth-status verified';
-        document.getElementById('shoppingArea').classList.remove('hidden');
-        document.getElementById('verificationBlock').classList.add('hidden');
-    }
-    console.log('✅ Инициализация завершена');
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-    initializeApp();
-}
-
-// ====== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======
-async function loadSenderEmail() {
+// ================================================================
+// 10. АДМИНИСТРАТОР: УПРАВЛЕНИЕ ТОВАРАМИ
+// ================================================================
+async function renderProductsAdminList() {
     try {
-        const data = await apiCall('/api/admin/sender-email');
-        document.getElementById('senderEmailInput').value = data.email || '';
-        document.getElementById('senderEmailStatus').textContent = '✅ Загружено';
-        document.getElementById('senderEmailStatus').style.color = '#1f7b4d';
-    } catch (e) {}
-}
+        const data = await apiCall('/api/admin/products');
+        const products = data.products || [];
+        const container = document.getElementById('productsListContainer');
+        if (!container) return;
+        if (products.length === 0) {
+            container.innerHTML = '<p>Товаров пока нет.</p>';
+            return;
+        }
+        let html = '<table class="participant-table"><thead><tr><th>Название</th><th>Цена</th><th>Категория</th><th>Действия</th></tr></thead><tbody>';
+        products.forEach(p => {
+            html += `<tr>
+                <td>${p.name}</td>
+                <td>${p.price} ₽</td>
+                <td>${p.category || ''}</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm edit-product" data-id="${p.id}">✏️</button>
+                    <button class="btn btn-danger btn-sm delete-product" data-id="${p.id}">🗑️</button>
+                </td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
 
+        container.querySelectorAll('.edit-product').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    document.getElementById('prodName').value = product.name;
+                    document.getElementById('prodPrice').value = product.price;
+                    document.getElementById('prodCategory').value = product.category || '';
+                    document.getElementById('prodUnit').value = product.unit || '';
+                    document.getElementById('prodWeight').value = product.weight || '';
+                    document.getElementById('prodCode').value = product.code || '';
+                    document.getElementById('prodDescription').value = product.description || '';
+                    const form = document.getElementById('productForm');
+                    form.dataset.editId = id;
+                    form.querySelector('button[type="submit"]').textContent = 'Обновить';
+                }
+            });
+        });
+        container.querySelectorAll('.delete-product').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const id = this.dataset.id;
+                if (!confirm('Удалить товар?')) return;
+                try {
+                    await apiCall(`/api/admin/products/${id}`, 'DELETE');
+                    alert('✅ Товар удалён');
+                    loadProductsFromDB();
+                } catch (e) {
+                    alert('❌ Ошибка: ' + e.message);
+                }
+            });
+        });
+    } catch (e) {
+        console.error('Ошибка загрузки товаров:', e);
+    }
+}
+document.getElementById('productForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('prodName').value.trim();
+    const price = parseFloat(document.getElementById('prodPrice').value);
+    if (!name || isNaN(price)) {
+        alert('Заполните название и цену');
+        return;
+    }
+    const data = {
+        name,
+        price,
+        category: document.getElementById('prodCategory').value.trim(),
+        unit: document.getElementById('prodUnit').value.trim(),
+        weight: parseFloat(document.getElementById('prodWeight').value) || 0,
+        code: document.getElementById('prodCode').value.trim(),
+        description: document.getElementById('prodDescription').value.trim()
+    };
+    const editId = this.dataset.editId;
+    try {
+        if (editId) {
+            await apiCall(`/api/admin/products/${editId}`, 'PUT', data);
+            alert('✅ Товар обновлён');
+            delete this.dataset.editId;
+            this.querySelector('button[type="submit"]').textContent = 'Добавить';
+            this.reset();
+        } else {
+            await apiCall('/api/admin/products', 'POST', data);
+            alert('✅ Товар добавлен');
+            this.reset();
+        }
+        loadProductsFromDB();
+    } catch (e) {
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+document.getElementById('manageProductsBtn').addEventListener('click', function() {
+    document.getElementById('productsModal').classList.add('active');
+    const form = document.getElementById('productForm');
+    delete form.dataset.editId;
+    form.querySelector('button[type="submit"]').textContent = 'Добавить';
+    form.reset();
+    renderProductsAdminList();
+});
+document.getElementById('closeProductsModal').addEventListener('click', function() {
+    document.getElementById('productsModal').classList.remove('active');
+});
+
+// ================================================================
+// 11. АДМИНИСТРАТОР: БЕСТСЕЛЛЕРЫ
+// ================================================================
+document.getElementById('showBestsellersBtn').addEventListener('click', async function() {
+    try {
+        const data = await apiCall('/api/analytics/bestsellers');
+        const list = document.getElementById('bestsellersList');
+        if (!data.bestsellers || data.bestsellers.length === 0) {
+            list.innerHTML = '<p>Нет данных о продажах.</p>';
+        } else {
+            let html = '<table class="participant-table"><thead><tr><th>Товар</th><th>Кол-во продаж</th><th>Цена</th></tr></thead><tbody>';
+            data.bestsellers.forEach(p => {
+                html += `<tr><td>${p.name}</td><td>${p.total_quantity}</td><td>${p.price} ₽</td></tr>`;
+            });
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+        document.getElementById('bestsellersModal').classList.add('active');
+    } catch (e) {
+        alert('❌ Ошибка загрузки бестселлеров: ' + e.message);
+    }
+});
+document.getElementById('closeBestsellersModal').addEventListener('click', function() {
+    document.getElementById('bestsellersModal').classList.remove('active');
+});
+
+// ================================================================
+// 12. АДМИНИСТРАТОР: ОСТАЛЬНЫЕ ФУНКЦИИ (скидка, общий счёт, экспорт, закрытие)
+// ================================================================
+document.getElementById('applyDiscountBtn').addEventListener('click', async function() {
+    const val = parseFloat(document.getElementById('globalDiscount').value);
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+        try {
+            const data = await apiCall('/api/admin/discount', 'POST', { discount: val });
+            if (data.success) {
+                globalDiscountPercent = data.discount;
+                updateDiscountUI();
+                alert(`✅ Скидка установлена на ${data.discount}%`);
+            }
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    } else {
+        alert('⚠️ Введите значение от 0 до 100');
+    }
+});
+document.getElementById('saveSenderEmailBtn').addEventListener('click', async function() {
+    const email = document.getElementById('senderEmailInput').value.trim();
+    if (!email || !email.includes('@')) {
+        document.getElementById('senderEmailStatus').textContent = '⚠️ Введите корректный email';
+        document.getElementById('senderEmailStatus').style.color = '#856404';
+        return;
+    }
+    try {
+        await apiCall('/api/admin/sender-email', 'POST', { email });
+        document.getElementById('senderEmailStatus').textContent = '✅ Email отправителя сохранён';
+        document.getElementById('senderEmailStatus').style.color = '#1f7b4d';
+    } catch (e) {
+        document.getElementById('senderEmailStatus').textContent = '❌ Ошибка: ' + e.message;
+        document.getElementById('senderEmailStatus').style.color = '#c0392b';
+    }
+});
+document.getElementById('generateGroupOrderBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { document.getElementById('groupOrderSummary').textContent = 'Нет данных.'; return; }
+    const aggregated = {};
+    allOrders.forEach(p => {
+        p.cart.forEach(item => {
+            if (aggregated[item.productId]) aggregated[item.productId] += item.quantity;
+            else aggregated[item.productId] = item.quantity;
+        });
+    });
+    let totalWeight = 0, subtotal = 0;
+    let lines = [`=== ОБЩИЙ СВОДНЫЙ СЧЁТ ===\n`];
+    Object.keys(aggregated).forEach(id => {
+        const prod = getProduct(id);
+        const qty = aggregated[id];
+        if (prod) {
+            totalWeight += prod.weight * qty;
+            subtotal += prod.price * qty;
+            lines.push(`${prod.name} x${qty} = ${(getPriceWithDiscount(prod) * qty).toFixed(0)} ₽`);
+        }
+    });
+    const disc = subtotal * (globalDiscountPercent / 100);
+    lines.push(`\n----------------------------------------`);
+    lines.push(`Всего заказов: ${allOrders.length}`);
+    lines.push(`Общий вес: ${totalWeight.toFixed(2)} кг`);
+    lines.push(`Итого: ${(subtotal - disc).toFixed(0)} ₽`);
+    document.getElementById('groupOrderSummary').textContent = lines.join('\n');
+});
+document.getElementById('exportExcelBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { alert('Нет данных для экспорта.'); return; }
+    const data = allOrders.map(p => {
+        const totals = calcTotals(p.cart);
+        return { 'ID': p.id, 'ФИО': p.name, 'Email': p.email, 'Дата': p.orderDate, 'Версия': p.version, 'Вес (кг)': parseFloat(totals.totalWeight.toFixed(2)), 'Стоимость (₽)': parseFloat(totals.total.toFixed(0)) };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Заказы');
+    XLSX.writeFile(wb, `TastyCoffee_Orders_${new Date().toISOString().slice(0,10)}.xlsx`);
+    alert('✅ Экспорт завершён.');
+});
+document.getElementById('sendFinalInvoicesBtn').addEventListener('click', function() {
+    if (allOrders.length === 0) { alert('Нет заказов.'); return; }
+    let count = 0;
+    allOrders.forEach(p => {
+        if (p.email && p.email !== '—' && p.email.includes('@')) {
+            const orderText = generatePersonalOrderText(p.name, p.email, p.phone, p.cart);
+            if (orderText) {
+                window.open(`mailto:${p.email}?subject=Финальный счёт Tasty Coffee&body=${encodeURIComponent(orderText)}`, '_blank');
+                count++;
+            }
+        }
+    });
+    alert(`📧 Открыто ${count} окон.`);
+});
+document.getElementById('closePurchaseBtn').addEventListener('click', async function() {
+    if (allOrders.length === 0) { alert('❌ Нет заказов для закрытия.'); return; }
+    if (confirm('🔒 Закрыть закупку? Все заказы будут заархивированы.')) {
+        try {
+            await apiCall('/api/admin/close', 'POST');
+            isClosed = true;
+            updateStatusUI();
+            alert('✅ Закупка закрыта!');
+        } catch (e) {
+            alert('❌ Ошибка: ' + e.message);
+        }
+    }
+});
+document.getElementById('copyPersonalBtn').addEventListener('click', function() {
+    const text = document.getElementById('personalOrderSummary').textContent;
+    if (text && !text.includes('❗')) navigator.clipboard.writeText(text).then(() => alert('📋 Скопировано!'));
+});
+document.getElementById('copyGroupOrderBtn').addEventListener('click', function() {
+    const text = document.getElementById('groupOrderSummary').textContent;
+    if (text && !text.includes('Нет данных')) navigator.clipboard.writeText(text).then(() => alert('📋 Скопировано!'));
+});
+
+// ================================================================
+// 13. SMTP НАСТРОЙКИ (EmailJS)
+// ================================================================
 function loadEmailJSSettings() {
     document.getElementById('emailjsPublicKey').value = localStorage.getItem('emailjs_public_key') || '';
     document.getElementById('emailjsServiceId').value = localStorage.getItem('emailjs_service_id') || '';
     document.getElementById('emailjsTemplateId').value = localStorage.getItem('emailjs_template_id') || '';
     updateSmtpStatus();
 }
-
 function updateSmtpStatus() {
     const hasAll = document.getElementById('emailjsPublicKey').value.trim() && 
                    document.getElementById('emailjsServiceId').value.trim() && 
@@ -699,7 +1228,6 @@ function updateSmtpStatus() {
         status.className = 'smtp-status waiting';
     }
 }
-
 document.getElementById('saveEmailjsBtn').addEventListener('click', function() {
     const key = document.getElementById('emailjsPublicKey').value.trim();
     const service = document.getElementById('emailjsServiceId').value.trim();
@@ -711,7 +1239,6 @@ document.getElementById('saveEmailjsBtn').addEventListener('click', function() {
     updateSmtpStatus();
     alert('✅ Настройки сохранены!');
 });
-
 document.getElementById('clearEmailjsBtn').addEventListener('click', function() {
     if (confirm('🗑️ Удалить настройки?')) {
         localStorage.removeItem('emailjs_public_key');
@@ -724,7 +1251,6 @@ document.getElementById('clearEmailjsBtn').addEventListener('click', function() 
         alert('✅ Настройки очищены.');
     }
 });
-
 document.getElementById('testEmailjsBtn').addEventListener('click', async function() {
     const key = document.getElementById('emailjsPublicKey').value.trim();
     const service = document.getElementById('emailjsServiceId').value.trim();
@@ -753,11 +1279,76 @@ document.getElementById('testEmailjsBtn').addEventListener('click', async functi
     }
 });
 
-// ====== КНОПКИ РАССЫЛОК (без изменений) ======
-// (они такие же, как в предыдущей версии)
-// ...
+// ================================================================
+// 14. РАССЫЛКИ
+// ================================================================
+document.getElementById('sendBulkMailtoBtn').addEventListener('click', function() {
+    const emails = participantsDB.map(p => p.email).filter(e => e && e !== '—' && e.includes('@'));
+    if (emails.length === 0) { alert('⚠️ Нет email-адресов.'); return; }
+    const subject = encodeURIComponent('☕ Открыта новая закупка Tasty Coffee!');
+    const body = encodeURIComponent(`Здравствуйте!\n\nОткрыта новая совместная закупка кофе Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}\n\nС уважением,\nКоманда Tasty Coffee`);
+    window.open(`mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`, '_blank');
+    alert(`📧 Открыто письмо для ${emails.length} получателей.`);
+});
+document.getElementById('copyEmailsBtn').addEventListener('click', function() {
+    const emails = participantsDB.map(p => p.email).filter(e => e && e !== '—' && e.includes('@'));
+    if (emails.length === 0) { alert('⚠️ Нет email-адресов.'); return; }
+    navigator.clipboard.writeText(emails.join('; ')).then(() => alert(`📋 Скопировано ${emails.length} email-адресов.`));
+});
+document.getElementById('sendSmtpBtn').addEventListener('click', async function() {
+    const key = document.getElementById('emailjsPublicKey').value.trim();
+    const service = document.getElementById('emailjsServiceId').value.trim();
+    const template = document.getElementById('emailjsTemplateId').value.trim();
+    if (!key || !service || !template) { alert('⚠️ Сначала настройте EmailJS.'); return; }
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    if (!confirm(`📧 Отправить ${valid.length} писем через SMTP?`)) return;
+    const status = document.getElementById('smtpStatus');
+    status.textContent = '⏳ Отправка...';
+    status.className = 'smtp-status waiting';
+    try {
+        emailjs.init(key);
+        let success = 0, errors = 0;
+        for (const p of valid) {
+            try {
+                const result = await emailjs.send(service, template, {
+                    from_name: 'Tasty Coffee',
+                    to_email: p.email,
+                    to_name: p.name || 'Участник',
+                    message: `Здравствуйте!\n\nОткрыта новая закупка Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}`
+                });
+                if (result.status === 200) success++;
+                else errors++;
+            } catch(e) { errors++; }
+        }
+        status.textContent = `✅ Успешно: ${success}, ошибок: ${errors}`;
+        status.className = errors > 0 ? 'smtp-status error' : 'smtp-status success';
+        alert(`📧 Результат:\n✅ Успешно: ${success}\n❌ Ошибок: ${errors}`);
+    } catch(e) {
+        status.textContent = '❌ Ошибка: ' + e.message;
+        status.className = 'smtp-status error';
+        alert('❌ Ошибка: ' + e.message);
+    }
+});
+document.getElementById('sendIndividualMailtoBtn').addEventListener('click', function() {
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    if (valid.length > 5 && !confirm(`👥 ${valid.length} получателей. Открыть ${valid.length} окон?`)) return;
+    const subject = encodeURIComponent('☕ Открыта новая закупка Tasty Coffee!');
+    valid.forEach(p => {
+        window.open(`mailto:${p.email}?subject=${subject}&body=${encodeURIComponent(`Здравствуйте, ${p.name || 'участник'}!\n\nОткрыта новая закупка Tasty Coffee.\n🔗 Ссылка: ${window.location.origin}`)}`, '_blank');
+    });
+    alert(`📧 Открыто ${valid.length} окон.`);
+});
+document.getElementById('sendStartNotificationBtn').addEventListener('click', function() {
+    const valid = participantsDB.filter(p => p.email && p.email !== '—' && p.email.includes('@'));
+    if (valid.length === 0) { alert('⚠️ Нет участников.'); return; }
+    alert(`📧 Найдено ${valid.length} участников. Используйте BCC или индивидуальную рассылку.`);
+});
 
-// ====== ЗАЩИТА ОТ ЗАКРЫТИЯ ======
+// ================================================================
+// 15. ЗАЩИТА ОТ ЗАКРЫТИЯ
+// ================================================================
 window.addEventListener('beforeunload', function(e) {
     const items = getCartItems();
     if (items.length > 0 || editMode) {
@@ -768,32 +1359,37 @@ window.addEventListener('beforeunload', function(e) {
     }
 });
 
-// ====== УБИРАЕМ ОТКРЫТИЕ ПУСТЫХ СТРАНИЦ ======
-// В createOrder мы больше не используем window.open; письмо отправляется сервером автоматически.
-// Поэтому в функции confirmOrderBtn убираем window.open и просто показываем уведомление.
-document.getElementById('confirmOrderBtn').addEventListener('click', async function() {
-    document.getElementById('consentModal').classList.remove('active');
-    const email = document.getElementById('userEmail').value.trim();
-    const phone = document.getElementById('userPhone').value.trim();
-    const cart = JSON.parse(JSON.stringify(myCart));
-    try {
-        const data = await apiCall('/api/orders', 'POST', { email, phone, cart });
-        if (data.success) {
-            document.getElementById('newOrderIdDisplay').textContent = data.order.id;
-            document.getElementById('successMessage').style.display = 'block';
-            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 10000);
-            // Письмо уже отправлено сервером, ничего не открываем
-            myCart = [];
-            updateCartUI();
-            updatePersonalSummary();
-            if (isAuthenticated) await loadOrdersData();
-        }
-    } catch (e) {
-        alert('❌ Ошибка: ' + e.message);
+// ================================================================
+// 16. ИНИЦИАЛИЗАЦИЯ
+// ================================================================
+async function initializeApp() {
+    console.log('🚀 Инициализация приложения...');
+    document.getElementById('productCount').textContent = `Всего товаров: 0`;
+    renderProductList();
+    updateCartUI();
+    updatePersonalSummary();
+    await checkAuthStatus();
+    if (isAuthenticated) {
+        await loadOrdersData();
+        await loadSenderEmail();
+        await loadProductsFromDB();
     }
-});
+    loadEmailJSSettings();
+    if (sessionStorage.getItem('verified') === 'true') {
+        isVerified = true;
+        document.getElementById('authStatus').textContent = '✅ Верифицирован';
+        document.getElementById('authStatus').className = 'auth-status verified';
+        document.getElementById('shoppingArea').classList.remove('hidden');
+        document.getElementById('verificationBlock').classList.add('hidden');
+    }
+    console.log('✅ Инициализация завершена');
+}
 
-// Также убираем window.open из других мест, например, в createOrder (но там уже нет).
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
 </script>
 </body>
 </html>
